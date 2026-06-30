@@ -1,4 +1,6 @@
+import 'package:taxi_passenger/core/config/passenger_app_config.dart';
 import 'package:taxi_passenger/core/constants/api_endpoints.dart';
+import 'package:taxi_passenger/core/errors/app_exception.dart';
 import 'package:taxi_passenger/data/api/api_client.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
@@ -25,97 +27,60 @@ class PassengerGeoApi {
       },
     );
 
-    final data = response['data'] is Map<String, dynamic>
-        ? response['data'] as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    final results = (data['results'] as List<dynamic>? ?? [])
+    return ((response as Map<String, dynamic>?)?['results'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(GeoPoint.fromAddressSearchJson)
         .toList();
-
-    return results;
   }
 
   Future<List<NearbyCar>> loadNearbyCars({
     required GeoPoint pickup,
     required GeoPoint destination,
   }) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.nearbyCars,
-      data: {
-        'pickup': pickup.toJson(),
-        'destination': destination.toJson(),
-      },
-    );
-
-    final items = (response['items'] as List<dynamic>? ?? [])
-        .whereType<Map<String, dynamic>>()
-        .map(NearbyCar.fromJson)
-        .toList();
-
-    if (items.isNotEmpty) {
-      return items;
+    if (PassengerAppConfig.mockEnabled) {
+      return const [
+        NearbyCar(
+          driverId: 'mock-driver-1',
+          carId: 'mock-car-1',
+          lat: 56.8392,
+          lng: 60.6071,
+          distanceMeters: 350,
+          etaMinutes: 3,
+          carClass: 'Эконом',
+        ),
+      ];
     }
 
-    return const [
-      NearbyCar(
-        driverId: 'd1',
-        carId: 'c1',
-        lat: 56.8392,
-        lng: 60.6071,
-        distanceMeters: 350,
-        etaMinutes: 3,
-        carClass: 'Эконом',
-      ),
-      NearbyCar(
-        driverId: 'd2',
-        carId: 'c2',
-        lat: 56.8379,
-        lng: 60.6031,
-        distanceMeters: 620,
-        etaMinutes: 5,
-        carClass: 'Комфорт',
-      ),
-    ];
+    return const [];
   }
 
   Future<RouteEstimate> loadRouteEstimate({
+    required String cityId,
+    required String tariffId,
     required GeoPoint pickup,
     required GeoPoint destination,
   }) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.routeEstimate,
-      data: {
-        'pickup': pickup.toJson(),
-        'destination': destination.toJson(),
-      },
-    );
-
-    if (response.isNotEmpty) {
-      return RouteEstimate.fromJson(response);
+    if (cityId.isEmpty) {
+      throw AppException('Backend требует city_id для расчета стоимости');
+    }
+    if (tariffId.isEmpty) {
+      throw AppException(
+        'Не настроен tariff_id. Передайте PASSENGER_DEFAULT_TARIFF_ID или добавьте источник тарифов.',
+      );
     }
 
-    return const RouteEstimate(
-      price: 420,
-      etaMinutes: 6,
-      tariffs: [
-        Tariff(
-          id: 'econom',
-          name: 'Эконом',
-          description: 'Быстро и доступно',
-        ),
-        Tariff(
-          id: 'comfort',
-          name: 'Комфорт',
-          description: 'Просторный салон',
-        ),
-        Tariff(
-          id: 'minivan',
-          name: 'Минивэн',
-          description: 'Для компании и багажа',
-        ),
-      ],
+    final response = await _apiClient.post(
+      ApiEndpoints.routeEstimate,
+      data: OrderEstimateRequest(
+        cityId: cityId,
+        tariffId: tariffId,
+        pickupLocation: pickup,
+        destinationLocation: destination,
+      ).toJson(),
+    );
+
+    return RouteEstimate.fromJson(
+      response as Map<String, dynamic>? ?? <String, dynamic>{},
     );
   }
 }

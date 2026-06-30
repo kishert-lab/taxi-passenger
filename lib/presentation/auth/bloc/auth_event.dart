@@ -24,13 +24,15 @@ class AuthConfirmCodeSubmitted extends AuthEvent {
   const AuthConfirmCodeSubmitted({
     required this.phone,
     required this.code,
+    this.name,
   });
 
   final String phone;
   final String code;
+  final String? name;
 
   @override
-  List<Object?> get props => [phone, code];
+  List<Object?> get props => [phone, code, name];
 }
 
 class AuthLogoutRequested extends AuthEvent {

@@ -16,38 +16,40 @@ class PassengerAuthApi {
     );
   }
 
-  Future<AuthTokens> confirmCode({
+  Future<PassengerAuthSession> confirmCode({
     required String phone,
     required String code,
+    String? name,
   }) async {
-    final response = await _apiClient.post(
+    final response = await _apiClient.postRaw(
       ApiEndpoints.confirmCode,
       data: {
         'phone': phone,
         'code': code,
+        if (name != null && name.isNotEmpty) 'name': name,
       },
       requiresAuthorization: false,
       skipAuthRefresh: true,
     );
-    return AuthTokens.fromResponse(response);
+
+    return PassengerAuthSession.fromResponse(response);
   }
 
   Future<AuthTokens> refreshTokens(String refreshToken) async {
-    final response = await _apiClient.post(
+    final response = await _apiClient.postRaw(
       ApiEndpoints.refresh,
       data: {'refresh_token': refreshToken},
       requiresAuthorization: false,
       skipAuthRefresh: true,
     );
+
     return AuthTokens.fromResponse(response);
   }
 
-  Future<void> logout({String? refreshToken}) async {
+  Future<void> logout({required String refreshToken}) async {
     await _apiClient.post(
       ApiEndpoints.logout,
-      data: refreshToken != null && refreshToken.isNotEmpty
-          ? {'refresh_token': refreshToken}
-          : null,
+      data: {'refresh_token': refreshToken},
       skipAuthRefresh: true,
     );
   }

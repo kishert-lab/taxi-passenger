@@ -18,7 +18,7 @@ class OrderCompletedScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${order.price.toStringAsFixed(0)} ₽',
+                '${order.priceValue.toStringAsFixed(0)} ₽',
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               const SizedBox(height: 12),

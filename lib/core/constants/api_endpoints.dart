@@ -4,7 +4,7 @@ class ApiEndpoints {
   static const requestCode = '/api/v1/passenger/auth/request-code';
   static const confirmCode = '/api/v1/passenger/auth/confirm-code';
   static const refresh = '/api/v1/passenger/auth/refresh';
-  static const logout = '/api/v1/auth/logout';
+  static const logout = '/api/v1/passenger/auth/logout';
   static const nearbyCars = '/api/v1/passenger/nearby-cars';
   static const routeEstimate = '/api/v1/passenger/orders/estimate';
   static const orders = '/api/v1/passenger/orders';

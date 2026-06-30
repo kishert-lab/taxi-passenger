@@ -17,17 +17,19 @@ class OrderState extends Equatable {
 
   OrderState copyWith({
     Order? activeOrder,
+    bool resetActiveOrder = false,
     List<Order>? history,
     bool? isLoading,
     bool? isLoadingHistory,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return OrderState(
-      activeOrder: activeOrder ?? this.activeOrder,
+      activeOrder: resetActiveOrder ? null : (activeOrder ?? this.activeOrder),
       history: history ?? this.history,
       isLoading: isLoading ?? this.isLoading,
       isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
-      errorMessage: errorMessage,
+      errorMessage: clearError ? null : errorMessage,
     );
   }
 

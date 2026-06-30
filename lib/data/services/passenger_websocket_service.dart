@@ -26,11 +26,9 @@ class PassengerWebSocketService {
       return;
     }
 
-    final uri = Uri.parse(
-      '$_wsBaseUrl${ApiEndpoints.webSocket}?token=$token',
-    );
+    final uri = Uri.parse('$_wsBaseUrl${ApiEndpoints.webSocket}?token=$token');
 
-    _channel?.sink.close();
+    await disconnect();
     _channel = WebSocketChannel.connect(uri);
     _channel!.stream.listen(
       (dynamic rawMessage) {

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:taxi_passenger/core/auth/auth_tokens.dart';
 import 'package:taxi_passenger/core/auth/auth_session_notifier.dart';
+import 'package:taxi_passenger/core/auth/auth_tokens.dart';
 import 'package:taxi_passenger/core/constants/api_endpoints.dart';
 import 'package:taxi_passenger/core/errors/app_exception.dart';
 import 'package:taxi_passenger/core/storage/token_storage.dart';
@@ -20,7 +20,7 @@ class ApiClient {
         LogInterceptor(
           requestBody: true,
           responseBody: true,
-          requestHeader: true,
+          requestHeader: false,
           responseHeader: false,
         ),
       );
@@ -37,30 +37,14 @@ class ApiClient {
           final token = await _tokenStorage.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-            if (kDebugMode) {
-              final tail = token.length > 12
-                  ? token.substring(token.length - 12)
-                  : token;
-              debugPrint(
-                'Attach Authorization for ${options.method} ${options.uri}: Bearer ***$tail',
-              );
-            }
-          } else if (kDebugMode) {
-            debugPrint(
-              'No access token for ${options.method} ${options.uri}',
-            );
           }
+
           handler.next(options);
         },
         onError: (exception, handler) async {
           if (_shouldTryRefresh(exception)) {
             final refreshedTokens = await _refreshTokens();
             if (refreshedTokens != null) {
-              if (kDebugMode) {
-                debugPrint(
-                  'Auth refresh success. Retrying ${exception.requestOptions.method} ${exception.requestOptions.uri}',
-                );
-              }
               final response = await _retryRequest(
                 exception.requestOptions,
                 refreshedTokens.accessToken,
@@ -69,9 +53,6 @@ class ApiClient {
               return;
             }
 
-            if (kDebugMode) {
-              debugPrint('Auth refresh failed. Session will be invalidated.');
-            }
             _authSessionNotifier.notifySessionExpired();
           }
 
@@ -108,7 +89,24 @@ class ApiClient {
   final AuthSessionNotifier _authSessionNotifier;
   Future<AuthTokens?>? _refreshOperation;
 
-  Future<Map<String, dynamic>> get(
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuthorization = true,
+    bool skipAuthRefresh = false,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      path,
+      queryParameters: queryParameters,
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
+      ),
+    );
+    return _unwrapData(response.data);
+  }
+
+  Future<Map<String, dynamic>> getRaw(
     String path, {
     Map<String, dynamic>? queryParameters,
     bool requiresAuthorization = true,
@@ -117,17 +115,32 @@ class ApiClient {
     final response = await _dio.get<Map<String, dynamic>>(
       path,
       queryParameters: queryParameters,
-      options: Options(
-        extra: {
-          'requiresAuthorization': requiresAuthorization,
-          'skipAuthRefresh': skipAuthRefresh,
-        },
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
       ),
     );
     return response.data ?? <String, dynamic>{};
   }
 
-  Future<Map<String, dynamic>> post(
+  Future<dynamic> post(
+    String path, {
+    Map<String, dynamic>? data,
+    bool requiresAuthorization = true,
+    bool skipAuthRefresh = false,
+  }) async {
+    final response = await _dio.post<dynamic>(
+      path,
+      data: data,
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
+      ),
+    );
+    return _unwrapData(response.data);
+  }
+
+  Future<Map<String, dynamic>> postRaw(
     String path, {
     Map<String, dynamic>? data,
     bool requiresAuthorization = true,
@@ -136,17 +149,32 @@ class ApiClient {
     final response = await _dio.post<Map<String, dynamic>>(
       path,
       data: data,
-      options: Options(
-        extra: {
-          'requiresAuthorization': requiresAuthorization,
-          'skipAuthRefresh': skipAuthRefresh,
-        },
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
       ),
     );
     return response.data ?? <String, dynamic>{};
   }
 
-  Future<Map<String, dynamic>> patch(
+  Future<dynamic> patch(
+    String path, {
+    Map<String, dynamic>? data,
+    bool requiresAuthorization = true,
+    bool skipAuthRefresh = false,
+  }) async {
+    final response = await _dio.patch<dynamic>(
+      path,
+      data: data,
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
+      ),
+    );
+    return _unwrapData(response.data);
+  }
+
+  Future<Map<String, dynamic>> patchRaw(
     String path, {
     Map<String, dynamic>? data,
     bool requiresAuthorization = true,
@@ -155,14 +183,24 @@ class ApiClient {
     final response = await _dio.patch<Map<String, dynamic>>(
       path,
       data: data,
-      options: Options(
-        extra: {
-          'requiresAuthorization': requiresAuthorization,
-          'skipAuthRefresh': skipAuthRefresh,
-        },
+      options: _options(
+        requiresAuthorization: requiresAuthorization,
+        skipAuthRefresh: skipAuthRefresh,
       ),
     );
     return response.data ?? <String, dynamic>{};
+  }
+
+  Options _options({
+    required bool requiresAuthorization,
+    required bool skipAuthRefresh,
+  }) {
+    return Options(
+      extra: {
+        'requiresAuthorization': requiresAuthorization,
+        'skipAuthRefresh': skipAuthRefresh,
+      },
+    );
   }
 
   Future<AuthTokens?> _refreshTokens() async {
@@ -198,6 +236,7 @@ class ApiClient {
         await _tokenStorage.clear();
         return null;
       }
+
       await _tokenStorage.saveTokens(tokens);
       return tokens;
     } catch (_) {
@@ -212,11 +251,6 @@ class ApiClient {
   ) {
     requestOptions.headers['Authorization'] = 'Bearer $accessToken';
     requestOptions.extra['skipAuthRefresh'] = true;
-    if (kDebugMode) {
-      debugPrint(
-        'Retry request with refreshed token: ${requestOptions.method} ${requestOptions.uri}',
-      );
-    }
     return _dio.fetch<dynamic>(requestOptions);
   }
 
@@ -283,5 +317,13 @@ class ApiClient {
     final extra = exception.requestOptions.extra;
     return extra['skipAuthRefresh'] == true &&
         extra['requiresAuthorization'] != false;
+  }
+
+  dynamic _unwrapData(dynamic responseData) {
+    if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+      return responseData['data'];
+    }
+
+    return responseData;
   }
 }

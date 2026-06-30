@@ -28,7 +28,7 @@ class OrderStatusCard extends StatelessWidget {
             Text('${order.pickup.address} -> ${order.destination.address}'),
             const SizedBox(height: 8),
             Text('Создан ${DateFormat('dd.MM.yyyy HH:mm').format(order.createdAt)}'),
-            Text('Стоимость: ${order.price.toStringAsFixed(0)} ₽'),
+            Text('Стоимость: ${order.priceValue.toStringAsFixed(0)} ₽'),
             if (extraText != null) ...[
               const SizedBox(height: 8),
               Text(extraText!),

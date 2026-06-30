@@ -64,7 +64,7 @@ class _HistoryTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('${order.price.toStringAsFixed(0)} ₽'),
+            Text('${order.priceValue.toStringAsFixed(0)} ₽'),
             Text(orderStatusLabel(order.status)),
           ],
         ),

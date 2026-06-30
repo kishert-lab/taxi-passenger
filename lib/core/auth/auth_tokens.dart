@@ -1,3 +1,5 @@
+import 'package:taxi_passenger/domain/models/models.dart';
+
 class AuthTokens {
   const AuthTokens({
     required this.accessToken,
@@ -31,6 +33,29 @@ class AuthTokens {
       expiresIn: (data['expires_in'] as num?)?.toInt() ??
           (data['expiresIn'] as num?)?.toInt() ??
           900,
+    );
+  }
+}
+
+class PassengerAuthSession {
+  const PassengerAuthSession({
+    required this.tokens,
+    required this.passenger,
+  });
+
+  final AuthTokens tokens;
+  final Passenger passenger;
+
+  factory PassengerAuthSession.fromResponse(Map<String, dynamic> response) {
+    final data = response['data'] is Map<String, dynamic>
+        ? response['data'] as Map<String, dynamic>
+        : response;
+
+    return PassengerAuthSession(
+      tokens: AuthTokens.fromResponse(data),
+      passenger: Passenger.fromJson(
+        data['passenger'] as Map<String, dynamic>? ?? <String, dynamic>{},
+      ),
     );
   }
 }

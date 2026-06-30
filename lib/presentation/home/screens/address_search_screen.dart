@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_passenger/data/repositories/geo_repository.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
+import 'package:taxi_passenger/presentation/home/bloc/map_bloc.dart';
 
 enum AddressSearchMode { pickup, destination }
 
@@ -19,11 +20,41 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
   List<GeoPoint> _results = const [];
   bool _isLoading = false;
   String? _errorMessage;
+  String? _locationHint;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveCurrentLocation();
+  }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _resolveCurrentLocation() async {
+    final repository = context.read<GeoRepository>();
+    try {
+      final currentLocation = await repository.loadCurrentLocation();
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _locationHint =
+            'Текущие координаты: ${currentLocation.lat.toStringAsFixed(5)}, ${currentLocation.lng.toStringAsFixed(5)}';
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _locationHint = error.toString();
+      });
+    }
   }
 
   Future<void> _search() async {
@@ -40,10 +71,14 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
 
     final repository = context.read<GeoRepository>();
     try {
+      final mapState = context.read<MapBloc>().state;
+      final currentLocation =
+          mapState.currentLocation ?? await repository.loadCurrentLocation();
+
       final results = await repository.searchAddresses(
         query: query,
-        lat: 56.8389,
-        lon: 60.6057,
+        lat: currentLocation.lat,
+        lon: currentLocation.lng,
         limit: 5,
       );
 
@@ -54,6 +89,8 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
       setState(() {
         _results = results;
         _isLoading = false;
+        _locationHint =
+            'Текущие координаты: ${currentLocation.lat.toStringAsFixed(5)}, ${currentLocation.lng.toStringAsFixed(5)}';
       });
     } catch (_) {
       if (!mounted) {
@@ -97,6 +134,14 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
               ],
             ),
             const SizedBox(height: 20),
+            if (_locationHint != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(_locationHint!),
+                ),
+              ),
             if (_errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),

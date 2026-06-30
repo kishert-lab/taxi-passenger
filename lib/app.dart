@@ -70,6 +70,7 @@ class _PassengerAppState extends State<PassengerApp> {
           BlocProvider(
             create: (_) => OrderRealtimeBloc(
               webSocketService: widget.dependencies.webSocketService,
+              orderRepository: widget.dependencies.orderRepository,
             ),
           ),
         ],
@@ -77,11 +78,19 @@ class _PassengerAppState extends State<PassengerApp> {
           child: BlocListener<AuthBloc, AuthState>(
             listenWhen: (previous, current) => previous.status != current.status,
             listener: (context, state) async {
-              if (!FirebaseConfig.pushEnabled) {
-                return;
-              }
               if (state.status == AuthStatus.authenticated) {
-                await widget.dependencies.pushNotificationService.syncToken();
+                // Orders/current currently depends on backend passenger-order auth wiring.
+                // Do not block successful login on that endpoint.
+                if (FirebaseConfig.pushEnabled) {
+                  await widget.dependencies.pushNotificationService.syncToken();
+                }
+                AppRouter.router.go('/home');
+              } else if (state.status == AuthStatus.unauthenticated) {
+                context
+                    .read<OrderRealtimeBloc>()
+                    .add(const OrderRealtimeDisconnectRequested());
+                context.read<OrderBloc>().add(const OrderActiveUpdated(null));
+                AppRouter.router.go('/auth/phone');
               }
             },
             child: MaterialApp.router(

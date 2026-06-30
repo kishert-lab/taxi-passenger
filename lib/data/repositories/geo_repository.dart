@@ -1,17 +1,19 @@
 import 'package:taxi_passenger/data/api/passenger_geo_api.dart';
+import 'package:taxi_passenger/data/services/current_location_service.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
 class GeoRepository {
-  GeoRepository({required PassengerGeoApi geoApi}) : _geoApi = geoApi;
+  GeoRepository({
+    required PassengerGeoApi geoApi,
+    required CurrentLocationService currentLocationService,
+  })  : _geoApi = geoApi,
+        _currentLocationService = currentLocationService;
 
   final PassengerGeoApi _geoApi;
+  final CurrentLocationService _currentLocationService;
 
-  Future<GeoPoint> loadCurrentLocation() async {
-    return const GeoPoint(
-      lat: 56.8389,
-      lng: 60.6057,
-      address: 'Текущее местоположение',
-    );
+  Future<GeoPoint> loadCurrentLocation() {
+    return _currentLocationService.getCurrentLocation();
   }
 
   Future<List<GeoPoint>> searchAddresses({
@@ -38,10 +40,14 @@ class GeoRepository {
   }
 
   Future<RouteEstimate> loadRouteEstimate({
+    required String cityId,
+    required String tariffId,
     required GeoPoint pickup,
     required GeoPoint destination,
   }) {
     return _geoApi.loadRouteEstimate(
+      cityId: cityId,
+      tariffId: tariffId,
       pickup: pickup,
       destination: destination,
     );

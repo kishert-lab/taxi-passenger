@@ -13,15 +13,18 @@ class OrderSearchingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<OrderRealtimeBloc, OrderRealtimeState>(
       listener: (context, state) {
-        final event = state.lastEvent;
-        if (event == null) {
+        context.read<OrderBloc>().add(OrderActiveUpdated(state.activeOrder));
+        final order = state.activeOrder;
+        if (order == null) {
           return;
         }
-        context.read<OrderBloc>().add(OrderActiveUpdated(event.order));
-        if (event.order.status == OrderStatus.assigned ||
-            event.order.status == OrderStatus.driverArriving) {
+
+        if (order.status == OrderStatus.assigned ||
+            order.status == OrderStatus.driverArriving ||
+            order.status == OrderStatus.driverWaiting) {
           context.go('/order/active');
-        } else if (event.order.status == OrderStatus.cancelled) {
+        } else if (order.status == OrderStatus.cancelled ||
+            order.status == OrderStatus.failed) {
           context.go('/home');
         }
       },
@@ -34,7 +37,7 @@ class OrderSearchingScreen extends StatelessWidget {
               builder: (context, state) {
                 final order = state.activeOrder;
                 if (order == null) {
-                  return const Center(child: Text('Водитель не найден'));
+                  return const Center(child: Text('Активный заказ не найден'));
                 }
                 return Column(
                   children: [
@@ -45,9 +48,10 @@ class OrderSearchingScreen extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 6),
                     ),
                     const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     OrderStatusCard(
                       order: order,
-                      extraText: 'Ожидаем события order.searching / order.assigned',
+                      extraText: 'Ожидаем назначение водителя',
                     ),
                     const Spacer(),
                     OutlinedButton(

@@ -9,41 +9,27 @@ class PassengerProfileApi {
 
   Future<Passenger> loadProfile() async {
     final response = await _apiClient.get(ApiEndpoints.me);
-    if (response.isNotEmpty) {
-      return Passenger.fromJson(response);
-    }
-
-    return const Passenger(
-      id: 'passenger-1',
-      phone: '+79991234567',
-      name: 'Пассажир',
-      email: 'passenger@example.com',
-      avatar: '',
+    return Passenger.fromJson(
+      response as Map<String, dynamic>? ?? <String, dynamic>{},
     );
   }
 
   Future<Passenger> updateProfile({
     required String name,
     required String email,
+    String? avatarUrl,
   }) async {
     final response = await _apiClient.patch(
       ApiEndpoints.me,
       data: {
         'name': name,
         'email': email,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
       },
     );
 
-    if (response.isNotEmpty) {
-      return Passenger.fromJson(response);
-    }
-
-    return Passenger(
-      id: 'passenger-1',
-      phone: '+79991234567',
-      name: name,
-      email: email,
-      avatar: '',
+    return Passenger.fromJson(
+      response as Map<String, dynamic>? ?? <String, dynamic>{},
     );
   }
 }

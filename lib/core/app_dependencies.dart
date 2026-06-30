@@ -15,6 +15,7 @@ import 'package:taxi_passenger/data/repositories/legal_repository.dart';
 import 'package:taxi_passenger/data/repositories/order_repository.dart';
 import 'package:taxi_passenger/data/repositories/profile_repository.dart';
 import 'package:taxi_passenger/data/repositories/push_repository.dart';
+import 'package:taxi_passenger/data/services/current_location_service.dart';
 import 'package:taxi_passenger/data/services/passenger_push_notification_service.dart';
 import 'package:taxi_passenger/data/services/passenger_websocket_service.dart';
 
@@ -63,6 +64,7 @@ class AppDependencies {
     final profileApi = PassengerProfileApi(apiClient);
     final pushApi = PassengerPushApi(apiClient);
     final publicLegalApi = PublicLegalApi(apiClient);
+    final currentLocationService = CurrentLocationService();
     final authRepository = AuthRepository(
       authApi: authApi,
       tokenStorage: tokenStorage,
@@ -71,9 +73,15 @@ class AppDependencies {
     return AppDependencies(
       authRepository: authRepository,
       authSessionNotifier: authSessionNotifier,
-      geoRepository: GeoRepository(geoApi: geoApi),
+      geoRepository: GeoRepository(
+        geoApi: geoApi,
+        currentLocationService: currentLocationService,
+      ),
       legalRepository: LegalRepository(publicLegalApi: publicLegalApi),
-      orderRepository: OrderRepository(ordersApi: ordersApi),
+      orderRepository: OrderRepository(
+        ordersApi: ordersApi,
+        tokenStorage: tokenStorage,
+      ),
       profileRepository: ProfileRepository(profileApi: profileApi),
       pushNotificationService: PassengerPushNotificationService(
         pushRepository: PushRepository(pushApi: pushApi),

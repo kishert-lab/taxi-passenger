@@ -22,8 +22,17 @@ class OrderCreateRequested extends OrderEventAction {
   List<Object?> get props => [pickup, destination, tariffId];
 }
 
+class OrderCurrentRequested extends OrderEventAction {
+  const OrderCurrentRequested();
+}
+
 class OrderCancelRequested extends OrderEventAction {
-  const OrderCancelRequested();
+  const OrderCancelRequested({this.reason = 'Passenger cancelled the order'});
+
+  final String reason;
+
+  @override
+  List<Object?> get props => [reason];
 }
 
 class OrderHistoryRequested extends OrderEventAction {
@@ -33,7 +42,7 @@ class OrderHistoryRequested extends OrderEventAction {
 class OrderActiveUpdated extends OrderEventAction {
   const OrderActiveUpdated(this.order);
 
-  final Order order;
+  final Order? order;
 
   @override
   List<Object?> get props => [order];

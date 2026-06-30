@@ -14,15 +14,16 @@ class ActiveOrderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<OrderRealtimeBloc, OrderRealtimeState>(
       listener: (context, state) {
-        final event = state.lastEvent;
-        if (event == null) {
+        context.read<OrderBloc>().add(OrderActiveUpdated(state.activeOrder));
+        final order = state.activeOrder;
+        if (order == null) {
           return;
         }
-        context.read<OrderBloc>().add(OrderActiveUpdated(event.order));
-        if (event.order.status == OrderStatus.inProgress) {
+
+        if (order.status == OrderStatus.inProgress) {
           context.go('/order/trip');
-        } else if (event.order.status == OrderStatus.completed) {
-          context.go('/order/completed', extra: event.order);
+        } else if (order.status == OrderStatus.completed) {
+          context.go('/order/completed', extra: order);
         }
       },
       child: Scaffold(
@@ -68,7 +69,9 @@ class ActiveOrderScreen extends StatelessWidget {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () {
-                              context.read<OrderBloc>().add(const OrderCancelRequested());
+                              context.read<OrderBloc>().add(
+                                    const OrderCancelRequested(),
+                                  );
                               context.go('/home');
                             },
                             child: const Text('Отменить заказ'),

@@ -14,7 +14,12 @@ class ProfileRepository {
   Future<Passenger> updateProfile({
     required String name,
     required String email,
+    String? avatarUrl,
   }) {
-    return _profileApi.updateProfile(name: name, email: email);
+    return _profileApi.updateProfile(
+      name: name,
+      email: email,
+      avatarUrl: avatarUrl,
+    );
   }
 }

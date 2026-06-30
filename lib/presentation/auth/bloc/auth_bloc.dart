@@ -62,7 +62,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
     try {
-      await _authRepository.confirmCode(phone: event.phone, code: event.code);
+      await _authRepository.confirmCode(
+        phone: event.phone,
+        code: event.code,
+        name: event.name,
+      );
       emit(state.copyWith(status: AuthStatus.authenticated, phone: event.phone));
     } catch (error) {
       emit(

@@ -9,7 +9,6 @@ import 'package:taxi_passenger/presentation/home/screens/address_search_screen.d
 import 'package:taxi_passenger/presentation/home/widgets/map_placeholder.dart';
 import 'package:taxi_passenger/presentation/home/widgets/tariff_select_widget.dart';
 import 'package:taxi_passenger/presentation/order/bloc/order_bloc.dart';
-import 'package:taxi_passenger/presentation/order/bloc/order_realtime_bloc.dart';
 
 class PassengerHomeScreen extends StatefulWidget {
   const PassengerHomeScreen({super.key});
@@ -38,9 +37,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
       mapBloc.add(MapDestinationUpdated(point));
     }
 
-    mapBloc
-      ..add(const MapNearbyCarsRequested())
-      ..add(const MapRouteEstimateRequested());
+    mapBloc.add(const MapRouteEstimateRequested());
   }
 
   void _createOrder(MapState mapState) {
@@ -50,7 +47,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
         destination == null ||
         mapState.selectedTariffId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Укажите адреса маршрута')),
+        const SnackBar(content: Text('Укажите адреса маршрута и tariff_id')),
       );
       return;
     }
@@ -64,22 +61,35 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
         );
   }
 
+  void _openOrderByStatus(Order order) {
+    switch (order.status) {
+      case OrderStatus.searching:
+        context.go('/order/searching');
+      case OrderStatus.assigned:
+      case OrderStatus.driverArriving:
+      case OrderStatus.driverWaiting:
+        context.go('/order/active');
+      case OrderStatus.inProgress:
+        context.go('/order/trip');
+      case OrderStatus.completed:
+        context.go('/order/completed', extra: order);
+      case OrderStatus.cancelled:
+      case OrderStatus.failed:
+        context.go('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<OrderBloc, OrderState>(
-          listenWhen: (previous, current) =>
-              previous.activeOrder != current.activeOrder &&
-              current.activeOrder != null,
-          listener: (context, state) {
-            context
-                .read<OrderRealtimeBloc>()
-                .add(const OrderRealtimeConnectRequested());
-            context.go('/order/searching');
-          },
-        ),
-      ],
+    return BlocListener<OrderBloc, OrderState>(
+      listenWhen: (previous, current) =>
+          previous.activeOrder != current.activeOrder && current.activeOrder != null,
+      listener: (context, state) {
+        final order = state.activeOrder;
+        if (order != null) {
+          _openOrderByStatus(order);
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Пассажир'),
@@ -131,7 +141,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
                                   _selectAddress(AddressSearchMode.destination),
                             ),
                             const SizedBox(height: 16),
-                            if (state.isLoadingCars || state.isLoadingEstimate)
+                            if (state.isLoadingEstimate)
                               const FullScreenLoader(
                                 message: 'Считаем маршрут...',
                               )

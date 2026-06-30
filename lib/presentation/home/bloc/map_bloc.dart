@@ -1,5 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:taxi_passenger/core/config/passenger_app_config.dart';
+import 'package:taxi_passenger/core/errors/app_exception.dart';
 import 'package:taxi_passenger/data/repositories/geo_repository.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
@@ -9,7 +11,11 @@ part 'map_state.dart';
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc({required GeoRepository geoRepository})
       : _geoRepository = geoRepository,
-        super(const MapState()) {
+        super(
+          MapState(
+            selectedTariffId: PassengerAppConfig.defaultTariffId,
+          ),
+        ) {
     on<MapCurrentLocationRequested>(_onCurrentLocationRequested);
     on<MapPickupUpdated>(_onPickupUpdated);
     on<MapDestinationUpdated>(_onDestinationUpdated);
@@ -77,11 +83,16 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         state.copyWith(
           isLoadingCars: false,
           nearbyCars: cars,
-          errorMessage: cars.isEmpty ? 'Поблизости нет свободных машин' : null,
+          errorMessage: null,
         ),
       );
     } catch (_) {
-      emit(state.copyWith(isLoadingCars: false, errorMessage: 'Ошибка соединения'));
+      emit(
+        state.copyWith(
+          isLoadingCars: false,
+          errorMessage: 'Ошибка соединения',
+        ),
+      );
     }
   }
 
@@ -96,21 +107,35 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     emit(state.copyWith(isLoadingEstimate: true, errorMessage: null));
     try {
+      final pickup = state.pickupPoint!;
+      final destination = state.destinationPoint!;
+      final cityId = destination.cityId ?? pickup.cityId ?? '';
+      final tariffId = state.selectedTariffId.isNotEmpty
+          ? state.selectedTariffId
+          : PassengerAppConfig.defaultTariffId;
+
       final estimate = await _geoRepository.loadRouteEstimate(
-        pickup: state.pickupPoint!,
-        destination: state.destinationPoint!,
+        cityId: cityId,
+        tariffId: tariffId,
+        pickup: pickup,
+        destination: destination,
       );
       emit(
         state.copyWith(
           isLoadingEstimate: false,
           routeEstimate: estimate,
-          selectedTariffId: state.selectedTariffId.isNotEmpty
-              ? state.selectedTariffId
-              : (estimate.tariffs.isNotEmpty ? estimate.tariffs.first.id : ''),
+          selectedTariffId: estimate.tariffId.isNotEmpty
+              ? estimate.tariffId
+              : tariffId,
         ),
       );
-    } catch (_) {
-      emit(state.copyWith(isLoadingEstimate: false, errorMessage: 'Ошибка соединения'));
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isLoadingEstimate: false,
+          errorMessage: error is AppException ? error.message : 'Ошибка соединения',
+        ),
+      );
     }
   }
 

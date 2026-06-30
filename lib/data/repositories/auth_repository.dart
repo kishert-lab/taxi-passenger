@@ -1,6 +1,7 @@
 import 'package:taxi_passenger/core/auth/auth_tokens.dart';
 import 'package:taxi_passenger/core/storage/token_storage.dart';
 import 'package:taxi_passenger/data/api/passenger_auth_api.dart';
+import 'package:taxi_passenger/domain/models/models.dart';
 
 class AuthRepository {
   AuthRepository({
@@ -23,13 +24,20 @@ class AuthRepository {
   Future<void> confirmCode({
     required String phone,
     required String code,
+    String? name,
   }) async {
-    final tokens = await _authApi.confirmCode(phone: phone, code: code);
-    if (tokens.accessToken.isEmpty || tokens.refreshToken.isEmpty) {
+    final session = await _authApi.confirmCode(
+      phone: phone,
+      code: code,
+      name: name,
+    );
+    if (session.tokens.accessToken.isEmpty ||
+        session.tokens.refreshToken.isEmpty) {
       throw Exception('Пустой access/refresh token в ответе авторизации');
     }
 
-    await _tokenStorage.saveTokens(tokens);
+    await _tokenStorage.saveTokens(session.tokens);
+    await _tokenStorage.savePassenger(session.passenger);
   }
 
   Future<bool> ensureAuthorizedSession() async {
@@ -64,7 +72,9 @@ class AuthRepository {
 
   Future<void> logout() async {
     final refreshToken = await _tokenStorage.getRefreshToken();
-    await _authApi.logout(refreshToken: refreshToken);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await _authApi.logout(refreshToken: refreshToken);
+    }
     await _tokenStorage.clear();
   }
 
@@ -74,5 +84,13 @@ class AuthRepository {
 
   Future<String?> getToken() {
     return _tokenStorage.getAccessToken();
+  }
+
+  Future<Passenger?> getPassenger() {
+    return _tokenStorage.getPassenger();
+  }
+
+  Future<void> savePassengerProfileData(Passenger passenger) {
+    return _tokenStorage.savePassenger(passenger);
   }
 }

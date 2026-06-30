@@ -14,13 +14,10 @@ class TripInProgressScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<OrderRealtimeBloc, OrderRealtimeState>(
       listener: (context, state) {
-        final event = state.lastEvent;
-        if (event == null) {
-          return;
-        }
-        context.read<OrderBloc>().add(OrderActiveUpdated(event.order));
-        if (event.order.status == OrderStatus.completed) {
-          context.go('/order/completed', extra: event.order);
+        context.read<OrderBloc>().add(OrderActiveUpdated(state.activeOrder));
+        final order = state.activeOrder;
+        if (order?.status == OrderStatus.completed && order != null) {
+          context.go('/order/completed', extra: order);
         }
       },
       child: Scaffold(
@@ -50,8 +47,7 @@ class TripInProgressScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     OrderStatusCard(
                       order: order,
-                      extraText:
-                          'Прибытие ~${order.etaMinutes} мин • Расстояние ${order.distanceMeters} м',
+                      extraText: 'Прибытие ~${order.etaMinutes} мин',
                     ),
                     const SizedBox(height: 16),
                     Row(
