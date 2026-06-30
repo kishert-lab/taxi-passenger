@@ -38,6 +38,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
     }
 
     mapBloc.add(const MapRouteEstimateRequested());
+    mapBloc.add(const MapNearbyCarsRequested());
   }
 
   void _createOrder(MapState mapState) {
@@ -53,12 +54,12 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
     }
 
     context.read<OrderBloc>().add(
-          OrderCreateRequested(
-            pickup: pickup,
-            destination: destination,
-            tariffId: mapState.selectedTariffId,
-          ),
-        );
+      OrderCreateRequested(
+        pickup: pickup,
+        destination: destination,
+        tariffId: mapState.selectedTariffId,
+      ),
+    );
   }
 
   void _openOrderByStatus(Order order) {
@@ -83,7 +84,8 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
   Widget build(BuildContext context) {
     return BlocListener<OrderBloc, OrderState>(
       listenWhen: (previous, current) =>
-          previous.activeOrder != current.activeOrder && current.activeOrder != null,
+          previous.activeOrder != current.activeOrder &&
+          current.activeOrder != null,
       listener: (context, state) {
         final order = state.activeOrder;
         if (order != null) {
@@ -128,14 +130,17 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
                           children: [
                             _AddressTile(
                               title: 'Откуда',
-                              value: state.pickupPoint?.address ??
+                              value:
+                                  state.pickupPoint?.address ??
                                   'Выберите точку посадки',
-                              onTap: () => _selectAddress(AddressSearchMode.pickup),
+                              onTap: () =>
+                                  _selectAddress(AddressSearchMode.pickup),
                             ),
                             const SizedBox(height: 12),
                             _AddressTile(
                               title: 'Куда',
-                              value: state.destinationPoint?.address ??
+                              value:
+                                  state.destinationPoint?.address ??
                                   'Выберите точку назначения',
                               onTap: () =>
                                   _selectAddress(AddressSearchMode.destination),
@@ -149,16 +154,19 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
                               if (state.routeEstimate != null)
                                 Text(
                                   'Подача ~${state.routeEstimate!.etaMinutes} мин, стоимость ~${state.routeEstimate!.price.toStringAsFixed(0)} ₽',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                               const SizedBox(height: 16),
                               TariffSelectWidget(
-                                tariffs: state.routeEstimate?.tariffs ?? const [],
+                                tariffs:
+                                    state.routeEstimate?.tariffs ?? const [],
                                 selectedTariffId: state.selectedTariffId,
                                 onSelected: (tariffId) {
-                                  context
-                                      .read<MapBloc>()
-                                      .add(MapTariffSelected(tariffId));
+                                  context.read<MapBloc>().add(
+                                    MapTariffSelected(tariffId),
+                                  );
                                 },
                               ),
                             ],

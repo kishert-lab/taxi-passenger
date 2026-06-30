@@ -1,4 +1,3 @@
-import 'package:taxi_passenger/core/config/passenger_app_config.dart';
 import 'package:taxi_passenger/core/constants/api_endpoints.dart';
 import 'package:taxi_passenger/core/errors/app_exception.dart';
 import 'package:taxi_passenger/data/api/api_client.dart';
@@ -27,7 +26,8 @@ class PassengerGeoApi {
       },
     );
 
-    return ((response as Map<String, dynamic>?)?['results'] as List<dynamic>? ?? [])
+    return ((response as Map<String, dynamic>?)?['results'] as List<dynamic>? ??
+            [])
         .whereType<Map<String, dynamic>>()
         .map(GeoPoint.fromAddressSearchJson)
         .toList();
@@ -37,21 +37,23 @@ class PassengerGeoApi {
     required GeoPoint pickup,
     required GeoPoint destination,
   }) async {
-    if (PassengerAppConfig.mockEnabled) {
-      return const [
-        NearbyCar(
-          driverId: 'mock-driver-1',
-          carId: 'mock-car-1',
-          lat: 56.8392,
-          lng: 60.6071,
-          distanceMeters: 350,
-          etaMinutes: 3,
-          carClass: 'Эконом',
-        ),
-      ];
+    final response = await _apiClient.post(
+      ApiEndpoints.nearbyCars,
+      data: {
+        'pickup_location': pickup.toLocationJson(),
+        'destination_location': destination.toLocationJson(),
+      },
+    );
+
+    if (response == null) {
+      return const [];
     }
 
-    return const [];
+    final cars = _extractNearbyCarsResponse(response);
+    return cars
+        .whereType<Map<String, dynamic>>()
+        .map(NearbyCar.fromJson)
+        .toList();
   }
 
   Future<RouteEstimate> loadRouteEstimate({
@@ -61,11 +63,11 @@ class PassengerGeoApi {
     required GeoPoint destination,
   }) async {
     if (cityId.isEmpty) {
-      throw AppException('Backend требует city_id для расчета стоимости');
+      throw AppException('Backend requires city_id for route estimate');
     }
     if (tariffId.isEmpty) {
       throw AppException(
-        'Не настроен tariff_id. Передайте PASSENGER_DEFAULT_TARIFF_ID или добавьте источник тарифов.',
+        'PASSENGER_DEFAULT_TARIFF_ID is not configured and backend requires tariff_id',
       );
     }
 
@@ -79,8 +81,35 @@ class PassengerGeoApi {
       ).toJson(),
     );
 
-    return RouteEstimate.fromJson(
-      response as Map<String, dynamic>? ?? <String, dynamic>{},
-    );
+    if (response is! Map<String, dynamic> || response.isEmpty) {
+      throw AppException('Backend returned empty route estimate response');
+    }
+
+    return RouteEstimate.fromJson(response);
+  }
+
+  List<dynamic> _extractNearbyCarsResponse(dynamic response) {
+    if (response is List<dynamic>) {
+      return response;
+    }
+
+    if (response is! Map<String, dynamic>) {
+      throw AppException('Unexpected nearby cars response format');
+    }
+
+    final candidates = <dynamic>[
+      response['cars'],
+      response['items'],
+      response['results'],
+      response['nearby_cars'],
+    ];
+
+    for (final candidate in candidates) {
+      if (candidate is List<dynamic>) {
+        return candidate;
+      }
+    }
+
+    return const [];
   }
 }

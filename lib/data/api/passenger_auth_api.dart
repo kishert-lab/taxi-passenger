@@ -47,6 +47,8 @@ class PassengerAuthApi {
   }
 
   Future<void> logout({required String refreshToken}) async {
+    // Passenger app uses a dedicated auth namespace, so logout must stay on
+    // the passenger endpoint alongside request-code/confirm-code/refresh.
     await _apiClient.post(
       ApiEndpoints.logout,
       data: {'refresh_token': refreshToken},

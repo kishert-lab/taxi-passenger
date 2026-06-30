@@ -31,6 +31,7 @@ class MapState extends Equatable {
     GeoPoint? destinationPoint,
     List<NearbyCar>? nearbyCars,
     RouteEstimate? routeEstimate,
+    bool clearRouteEstimate = false,
     String? selectedTariffId,
     bool? isLoadingLocation,
     bool? isLoadingCars,
@@ -42,7 +43,9 @@ class MapState extends Equatable {
       pickupPoint: pickupPoint ?? this.pickupPoint,
       destinationPoint: destinationPoint ?? this.destinationPoint,
       nearbyCars: nearbyCars ?? this.nearbyCars,
-      routeEstimate: routeEstimate ?? this.routeEstimate,
+      routeEstimate: clearRouteEstimate
+          ? null
+          : routeEstimate ?? this.routeEstimate,
       selectedTariffId: selectedTariffId ?? this.selectedTariffId,
       isLoadingLocation: isLoadingLocation ?? this.isLoadingLocation,
       isLoadingCars: isLoadingCars ?? this.isLoadingCars,
@@ -53,15 +56,15 @@ class MapState extends Equatable {
 
   @override
   List<Object?> get props => [
-        currentLocation,
-        pickupPoint,
-        destinationPoint,
-        nearbyCars,
-        routeEstimate,
-        selectedTariffId,
-        isLoadingLocation,
-        isLoadingCars,
-        isLoadingEstimate,
-        errorMessage,
-      ];
+    currentLocation,
+    pickupPoint,
+    destinationPoint,
+    nearbyCars,
+    routeEstimate,
+    selectedTariffId,
+    isLoadingLocation,
+    isLoadingCars,
+    isLoadingEstimate,
+    errorMessage,
+  ];
 }

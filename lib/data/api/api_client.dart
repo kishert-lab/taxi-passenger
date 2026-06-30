@@ -11,19 +11,13 @@ class ApiClient {
     required Dio dio,
     required TokenStorage tokenStorage,
     required AuthSessionNotifier authSessionNotifier,
-  })  : _dio = dio,
-        _refreshDio = Dio(dio.options),
-        _tokenStorage = tokenStorage,
-        _authSessionNotifier = authSessionNotifier {
+  }) : _dio = dio,
+       _refreshDio = Dio(dio.options),
+       _tokenStorage = tokenStorage,
+       _authSessionNotifier = authSessionNotifier {
     if (kDebugMode) {
-      _dio.interceptors.add(
-        LogInterceptor(
-          requestBody: true,
-          responseBody: true,
-          requestHeader: false,
-          responseHeader: false,
-        ),
-      );
+      _dio.interceptors.add(_debugLogInterceptor());
+      _refreshDio.interceptors.add(_debugLogInterceptor());
     }
 
     _dio.interceptors.add(
@@ -95,15 +89,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.get<dynamic>(
-      path,
-      queryParameters: queryParameters,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return _unwrapData(response.data);
+    try {
+      final response = await _dio.get<dynamic>(
+        path,
+        queryParameters: queryParameters,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return _unwrapData(response.data);
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Future<Map<String, dynamic>> getRaw(
@@ -112,15 +110,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      path,
-      queryParameters: queryParameters,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return response.data ?? <String, dynamic>{};
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        path,
+        queryParameters: queryParameters,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return response.data ?? <String, dynamic>{};
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Future<dynamic> post(
@@ -129,15 +131,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.post<dynamic>(
-      path,
-      data: data,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return _unwrapData(response.data);
+    try {
+      final response = await _dio.post<dynamic>(
+        path,
+        data: data,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return _unwrapData(response.data);
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Future<Map<String, dynamic>> postRaw(
@@ -146,15 +152,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      path,
-      data: data,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return response.data ?? <String, dynamic>{};
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: data,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return response.data ?? <String, dynamic>{};
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Future<dynamic> patch(
@@ -163,15 +173,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.patch<dynamic>(
-      path,
-      data: data,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return _unwrapData(response.data);
+    try {
+      final response = await _dio.patch<dynamic>(
+        path,
+        data: data,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return _unwrapData(response.data);
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Future<Map<String, dynamic>> patchRaw(
@@ -180,15 +194,19 @@ class ApiClient {
     bool requiresAuthorization = true,
     bool skipAuthRefresh = false,
   }) async {
-    final response = await _dio.patch<Map<String, dynamic>>(
-      path,
-      data: data,
-      options: _options(
-        requiresAuthorization: requiresAuthorization,
-        skipAuthRefresh: skipAuthRefresh,
-      ),
-    );
-    return response.data ?? <String, dynamic>{};
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        path,
+        data: data,
+        options: _options(
+          requiresAuthorization: requiresAuthorization,
+          skipAuthRefresh: skipAuthRefresh,
+        ),
+      );
+      return response.data ?? <String, dynamic>{};
+    } on DioException catch (error) {
+      throw _normalizeError(error);
+    }
   }
 
   Options _options({
@@ -231,7 +249,9 @@ class ApiClient {
         ApiEndpoints.refresh,
         data: {'refresh_token': refreshToken},
       );
-      final tokens = AuthTokens.fromResponse(response.data ?? <String, dynamic>{});
+      final tokens = AuthTokens.fromResponse(
+        response.data ?? <String, dynamic>{},
+      );
       if (tokens.accessToken.isEmpty || tokens.refreshToken.isEmpty) {
         await _tokenStorage.clear();
         return null;
@@ -264,9 +284,11 @@ class ApiClient {
     if (responseData is Map<String, dynamic>) {
       final error = responseData['error'];
       if (error is Map<String, dynamic>) {
-        backendMessage = error['message']?.toString() ?? error['code']?.toString();
+        backendMessage =
+            error['message']?.toString() ?? error['code']?.toString();
       } else {
-        backendMessage = responseData['message']?.toString() ??
+        backendMessage =
+            responseData['message']?.toString() ??
             responseData['error']?.toString();
       }
     } else if (responseData is String && responseData.isNotEmpty) {
@@ -287,11 +309,11 @@ class ApiClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'Таймаут соединения';
+        return 'РўР°Р№РјР°СѓС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ';
       case DioExceptionType.connectionError:
-        return 'Нет соединения с сервером';
+        return 'РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ СЃРµСЂРІРµСЂРѕРј';
       default:
-        return 'Ошибка соединения';
+        return 'РћС€РёР±РєР° СЃРѕРµРґРёРЅРµРЅРёСЏ';
     }
   }
 
@@ -320,10 +342,53 @@ class ApiClient {
   }
 
   dynamic _unwrapData(dynamic responseData) {
-    if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
       return responseData['data'];
     }
 
     return responseData;
+  }
+
+  Interceptor _debugLogInterceptor() {
+    return InterceptorsWrapper(
+      onRequest: (options, handler) {
+        debugPrint('[API] ${options.method} ${options.uri}');
+        debugPrint('[API] request body: ${options.data}');
+        handler.next(options);
+      },
+      onResponse: (response, handler) {
+        debugPrint('[API] response status: ${response.statusCode}');
+        debugPrint('[API] response body: ${response.data}');
+        handler.next(response);
+      },
+      onError: (error, handler) {
+        debugPrint(
+          '[API] error: ${error.type} ${error.requestOptions.method} ${error.requestOptions.uri}',
+        );
+        debugPrint(
+          '[API] error response status: ${error.response?.statusCode}',
+        );
+        debugPrint('[API] error response body: ${error.response?.data}');
+        debugPrint('[API] error details: ${error.error ?? error.message}');
+        handler.next(error);
+      },
+    );
+  }
+
+  AppException _normalizeError(DioException error) {
+    final innerError = error.error;
+    if (innerError is AppException) {
+      return innerError;
+    }
+
+    return AppException(
+      _buildErrorMessage(
+        statusCode: error.response?.statusCode,
+        responseData: error.response?.data,
+        errorType: error.type,
+      ),
+      statusCode: error.response?.statusCode,
+    );
   }
 }

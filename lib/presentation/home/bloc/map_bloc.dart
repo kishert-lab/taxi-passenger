@@ -10,12 +10,8 @@ part 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc({required GeoRepository geoRepository})
-      : _geoRepository = geoRepository,
-        super(
-          MapState(
-            selectedTariffId: PassengerAppConfig.defaultTariffId,
-          ),
-        ) {
+    : _geoRepository = geoRepository,
+      super(MapState(selectedTariffId: PassengerAppConfig.defaultTariffId)) {
     on<MapCurrentLocationRequested>(_onCurrentLocationRequested);
     on<MapPickupUpdated>(_onPickupUpdated);
     on<MapDestinationUpdated>(_onDestinationUpdated);
@@ -44,7 +40,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(
         state.copyWith(
           isLoadingLocation: false,
-          errorMessage: 'Не удалось получить геопозицию',
+          errorMessage:
+              'РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РіРµРѕРїРѕР·РёС†РёСЋ',
         ),
       );
     }
@@ -69,11 +66,21 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     if (state.pickupPoint == null || state.destinationPoint == null) {
-      emit(state.copyWith(errorMessage: 'Укажите адреса маршрута'));
+      emit(
+        state.copyWith(
+          errorMessage: 'РЈРєР°Р¶РёС‚Рµ Р°РґСЂРµСЃР° РјР°СЂС€СЂСѓС‚Р°',
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(isLoadingCars: true, errorMessage: null));
+    emit(
+      state.copyWith(
+        isLoadingCars: true,
+        nearbyCars: const [],
+        errorMessage: null,
+      ),
+    );
     try {
       final cars = await _geoRepository.loadNearbyCars(
         pickup: state.pickupPoint!,
@@ -86,11 +93,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
           errorMessage: null,
         ),
       );
-    } catch (_) {
+    } catch (error) {
       emit(
         state.copyWith(
           isLoadingCars: false,
-          errorMessage: 'Ошибка соединения',
+          nearbyCars: const [],
+          errorMessage: error is AppException
+              ? error.message
+              : 'РћС€РёР±РєР° СЃРѕРµРґРёРЅРµРЅРёСЏ',
         ),
       );
     }
@@ -101,11 +111,21 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     if (state.pickupPoint == null || state.destinationPoint == null) {
-      emit(state.copyWith(errorMessage: 'Укажите адреса маршрута'));
+      emit(
+        state.copyWith(
+          errorMessage: 'РЈРєР°Р¶РёС‚Рµ Р°РґСЂРµСЃР° РјР°СЂС€СЂСѓС‚Р°',
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(isLoadingEstimate: true, errorMessage: null));
+    emit(
+      state.copyWith(
+        isLoadingEstimate: true,
+        clearRouteEstimate: true,
+        errorMessage: null,
+      ),
+    );
     try {
       final pickup = state.pickupPoint!;
       final destination = state.destinationPoint!;
@@ -133,7 +153,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(
         state.copyWith(
           isLoadingEstimate: false,
-          errorMessage: error is AppException ? error.message : 'Ошибка соединения',
+          clearRouteEstimate: true,
+          errorMessage: error is AppException
+              ? error.message
+              : 'РћС€РёР±РєР° СЃРѕРµРґРёРЅРµРЅРёСЏ',
         ),
       );
     }
