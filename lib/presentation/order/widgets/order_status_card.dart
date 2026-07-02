@@ -3,11 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
 class OrderStatusCard extends StatelessWidget {
-  const OrderStatusCard({
-    super.key,
-    required this.order,
-    this.extraText,
-  });
+  const OrderStatusCard({super.key, required this.order, this.extraText});
 
   final Order order;
   final String? extraText;
@@ -27,7 +23,9 @@ class OrderStatusCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text('${order.pickup.address} -> ${order.destination.address}'),
             const SizedBox(height: 8),
-            Text('Создан ${DateFormat('dd.MM.yyyy HH:mm').format(order.createdAt)}'),
+            Text(
+              'Создан ${DateFormat('dd.MM.yyyy HH:mm').format(order.createdAt)}',
+            ),
             Text('Стоимость: ${order.priceValue.toStringAsFixed(0)} ₽'),
             if (extraText != null) ...[
               const SizedBox(height: 8),

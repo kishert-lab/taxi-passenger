@@ -1,35 +1,22 @@
-import 'package:taxi_passenger/core/config/passenger_app_config.dart';
-import 'package:taxi_passenger/core/errors/app_exception.dart';
-import 'package:taxi_passenger/core/storage/token_storage.dart';
 import 'package:taxi_passenger/data/api/passenger_orders_api.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
 class OrderRepository {
-  OrderRepository({
-    required PassengerOrdersApi ordersApi,
-    required TokenStorage tokenStorage,
-  })  : _ordersApi = ordersApi,
-        _tokenStorage = tokenStorage;
+  OrderRepository({required PassengerOrdersApi ordersApi})
+    : _ordersApi = ordersApi;
 
   final PassengerOrdersApi _ordersApi;
-  final TokenStorage _tokenStorage;
 
   Future<RouteEstimate> estimateOrder({
     required GeoPoint pickup,
     required GeoPoint destination,
-    String? tariffId,
+    required String carClassId,
   }) {
-    final cityId = destination.cityId ?? pickup.cityId ?? '';
-    final resolvedTariffId = tariffId?.isNotEmpty == true
-        ? tariffId!
-        : PassengerAppConfig.defaultTariffId;
-
     return _ordersApi.estimateOrder(
       OrderEstimateRequest(
-        cityId: cityId,
-        tariffId: resolvedTariffId,
         pickupLocation: pickup,
         destinationLocation: destination,
+        carClassId: carClassId,
       ),
     );
   }
@@ -37,27 +24,25 @@ class OrderRepository {
   Future<Order> createOrder({
     required GeoPoint pickup,
     required GeoPoint destination,
-    required String tariffId,
+    required String carClassId,
     String paymentType = 'cash',
     String comment = '',
+    String pickupEntrance = '',
+    String pickupComment = '',
+    bool passengerLocationSharingEnabled = true,
   }) async {
-    final passenger = await _tokenStorage.getPassenger();
-    final cityId = destination.cityId ?? pickup.cityId ?? '';
-    if (cityId.isEmpty) {
-      throw AppException('Backend требует city_id для создания заказа');
-    }
-
     return _ordersApi.createOrder(
       CreateOrderRequest(
-        cityId: cityId,
         pickupLocation: pickup,
         pickupAddress: pickup.address,
+        pickupEntrance: pickupEntrance,
+        pickupComment: pickupComment,
         destinationLocation: destination,
         destinationAddress: destination.address,
-        tariffId: tariffId,
+        carClassId: carClassId,
         paymentType: paymentType,
         comment: comment,
-        passengerPhone: passenger?.phone ?? '',
+        passengerLocationSharingEnabled: passengerLocationSharingEnabled,
       ),
     );
   }
@@ -66,11 +51,27 @@ class OrderRepository {
     return _ordersApi.loadCurrentOrder();
   }
 
+  Future<Order> loadOrderDetails(String orderId) {
+    return _ordersApi.loadOrderDetails(orderId);
+  }
+
   Future<Order> cancelOrder(
     String orderId, {
     String reason = 'Passenger cancelled the order',
   }) {
     return _ordersApi.cancelOrder(orderId, reason: reason);
+  }
+
+  Future<void> rateOrder({
+    required String orderId,
+    required int rating,
+    String? comment,
+  }) {
+    return _ordersApi.rateOrder(
+      orderId: orderId,
+      rating: rating,
+      comment: comment,
+    );
   }
 
   Future<List<Order>> loadOrders() {

@@ -37,7 +37,8 @@ class PublicLegalApi {
       queryParameters: {'language': language},
       requiresAuthorization: false,
     );
-    final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final data =
+        response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
     return LegalDocument.fromJson(data);
   }
 
@@ -47,7 +48,8 @@ class PublicLegalApi {
       queryParameters: {'language': language},
       requiresAuthorization: false,
     );
-    final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final data =
+        response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
     return LegalDocument.fromJson(data);
   }
 
@@ -57,7 +59,8 @@ class PublicLegalApi {
       queryParameters: {'language': language},
       requiresAuthorization: false,
     );
-    final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final data =
+        response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
     return LegalDocument.fromJson(data);
   }
 }

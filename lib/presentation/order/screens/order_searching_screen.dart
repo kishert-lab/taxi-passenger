@@ -56,7 +56,9 @@ class OrderSearchingScreen extends StatelessWidget {
                     const Spacer(),
                     OutlinedButton(
                       onPressed: () {
-                        context.read<OrderBloc>().add(const OrderCancelRequested());
+                        context.read<OrderBloc>().add(
+                          const OrderCancelRequested(),
+                        );
                         context.go('/home');
                       },
                       child: const Text('Отменить заказ'),

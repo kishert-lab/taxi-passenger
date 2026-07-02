@@ -7,8 +7,8 @@ class AuthRepository {
   AuthRepository({
     required PassengerAuthApi authApi,
     required TokenStorage tokenStorage,
-  })  : _authApi = authApi,
-        _tokenStorage = tokenStorage;
+  }) : _authApi = authApi,
+       _tokenStorage = tokenStorage;
 
   final PassengerAuthApi _authApi;
   final TokenStorage _tokenStorage;

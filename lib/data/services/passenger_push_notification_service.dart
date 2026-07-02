@@ -10,8 +10,8 @@ class PassengerPushNotificationService {
   PassengerPushNotificationService({
     required PushRepository pushRepository,
     required AuthRepository authRepository,
-  })  : _pushRepository = pushRepository,
-        _authRepository = authRepository;
+  }) : _pushRepository = pushRepository,
+       _authRepository = authRepository;
 
   final PushRepository _pushRepository;
   final AuthRepository _authRepository;

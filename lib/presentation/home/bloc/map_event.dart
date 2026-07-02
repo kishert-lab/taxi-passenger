@@ -11,6 +11,10 @@ class MapCurrentLocationRequested extends MapEvent {
   const MapCurrentLocationRequested();
 }
 
+class MapCarClassesRequested extends MapEvent {
+  const MapCarClassesRequested();
+}
+
 class MapPickupUpdated extends MapEvent {
   const MapPickupUpdated(this.point);
 
@@ -29,19 +33,15 @@ class MapDestinationUpdated extends MapEvent {
   List<Object?> get props => [point];
 }
 
-class MapNearbyCarsRequested extends MapEvent {
-  const MapNearbyCarsRequested();
-}
-
 class MapRouteEstimateRequested extends MapEvent {
   const MapRouteEstimateRequested();
 }
 
-class MapTariffSelected extends MapEvent {
-  const MapTariffSelected(this.tariffId);
+class MapCarClassSelected extends MapEvent {
+  const MapCarClassSelected(this.carClassId);
 
-  final String tariffId;
+  final String carClassId;
 
   @override
-  List<Object?> get props => [tariffId];
+  List<Object?> get props => [carClassId];
 }

@@ -2,7 +2,7 @@ import 'package:taxi_passenger/data/api/public_legal_api.dart';
 
 class LegalRepository {
   LegalRepository({required PublicLegalApi publicLegalApi})
-      : _publicLegalApi = publicLegalApi;
+    : _publicLegalApi = publicLegalApi;
 
   final PublicLegalApi _publicLegalApi;
 

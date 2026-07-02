@@ -106,8 +106,9 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title =
-        widget.mode == AddressSearchMode.pickup ? 'Откуда едем' : 'Куда едем';
+    final title = widget.mode == AddressSearchMode.pickup
+        ? 'Откуда едем'
+        : 'Куда едем';
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -127,10 +128,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                FilledButton(
-                  onPressed: _search,
-                  child: const Text('Найти'),
-                ),
+                FilledButton(onPressed: _search, child: const Text('Найти')),
               ],
             ),
             const SizedBox(height: 20),
@@ -154,9 +152,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                 ),
               ),
             if (_isLoading)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: Center(child: CircularProgressIndicator()))
             else
               Expanded(
                 child: ListView.separated(

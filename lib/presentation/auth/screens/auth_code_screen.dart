@@ -49,23 +49,22 @@ class _AuthCodeScreenState extends State<AuthCodeScreen> {
                   TextField(
                     controller: _controller,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'SMS-код',
-                    ),
+                    decoration: const InputDecoration(labelText: 'SMS-код'),
                   ),
                   const SizedBox(height: 16),
-                  if (state.errorMessage != null) ErrorText(state.errorMessage!),
+                  if (state.errorMessage != null)
+                    ErrorText(state.errorMessage!),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: state.status == AuthStatus.loading
                         ? null
                         : () {
                             context.read<AuthBloc>().add(
-                                  AuthConfirmCodeSubmitted(
-                                    phone: widget.phone,
-                                    code: _controller.text.trim(),
-                                  ),
-                                );
+                              AuthConfirmCodeSubmitted(
+                                phone: widget.phone,
+                                code: _controller.text.trim(),
+                              ),
+                            );
                           },
                     child: state.status == AuthStatus.loading
                         ? const CircularProgressIndicator(color: Colors.white)

@@ -11,15 +11,34 @@ class OrderCreateRequested extends OrderEventAction {
   const OrderCreateRequested({
     required this.pickup,
     required this.destination,
-    required this.tariffId,
+    required this.carClassId,
+    this.paymentType = 'cash',
+    this.comment = '',
+    this.pickupEntrance = '',
+    this.pickupComment = '',
+    this.passengerLocationSharingEnabled = true,
   });
 
   final GeoPoint pickup;
   final GeoPoint destination;
-  final String tariffId;
+  final String carClassId;
+  final String paymentType;
+  final String comment;
+  final String pickupEntrance;
+  final String pickupComment;
+  final bool passengerLocationSharingEnabled;
 
   @override
-  List<Object?> get props => [pickup, destination, tariffId];
+  List<Object?> get props => [
+    pickup,
+    destination,
+    carClassId,
+    paymentType,
+    comment,
+    pickupEntrance,
+    pickupComment,
+    passengerLocationSharingEnabled,
+  ];
 }
 
 class OrderCurrentRequested extends OrderEventAction {

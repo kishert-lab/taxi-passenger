@@ -10,8 +10,8 @@ class PassengerWebSocketService {
   PassengerWebSocketService({
     required TokenStorage tokenStorage,
     required String wsBaseUrl,
-  })  : _tokenStorage = tokenStorage,
-        _wsBaseUrl = wsBaseUrl;
+  }) : _tokenStorage = tokenStorage,
+       _wsBaseUrl = wsBaseUrl;
 
   final TokenStorage _tokenStorage;
   final String _wsBaseUrl;
@@ -30,6 +30,18 @@ class PassengerWebSocketService {
 
     await disconnect();
     _channel = WebSocketChannel.connect(uri);
+    _channel!.sink.add(
+      jsonEncode({
+        'type': 'subscribe',
+        'payload': {
+          'topics': [
+            'passenger.orders',
+            'passenger.notifications',
+            'passenger.chat',
+          ],
+        },
+      }),
+    );
     _channel!.stream.listen(
       (dynamic rawMessage) {
         final data = jsonDecode(rawMessage as String) as Map<String, dynamic>;

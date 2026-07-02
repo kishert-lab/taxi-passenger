@@ -3,7 +3,7 @@ import 'package:taxi_passenger/domain/models/models.dart';
 
 class ProfileRepository {
   ProfileRepository({required PassengerProfileApi profileApi})
-      : _profileApi = profileApi;
+    : _profileApi = profileApi;
 
   final PassengerProfileApi _profileApi;
 

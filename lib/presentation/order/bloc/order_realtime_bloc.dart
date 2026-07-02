@@ -13,9 +13,9 @@ class OrderRealtimeBloc extends Bloc<OrderRealtimeEvent, OrderRealtimeState> {
   OrderRealtimeBloc({
     required PassengerWebSocketService webSocketService,
     required OrderRepository orderRepository,
-  })  : _webSocketService = webSocketService,
-        _orderRepository = orderRepository,
-        super(const OrderRealtimeState()) {
+  }) : _webSocketService = webSocketService,
+       _orderRepository = orderRepository,
+       super(const OrderRealtimeState()) {
     on<OrderRealtimeConnectRequested>(_onConnectRequested);
     on<OrderRealtimeDisconnectRequested>(_onDisconnectRequested);
     on<OrderRealtimeEventReceived>(_onEventReceived);
@@ -61,7 +61,9 @@ class OrderRealtimeBloc extends Bloc<OrderRealtimeEvent, OrderRealtimeState> {
       if (resolvedOrder == null &&
           state.activeOrder != null &&
           resolvedEvent.orderStatus != null) {
-        resolvedOrder = state.activeOrder!.copyWith(status: resolvedEvent.orderStatus);
+        resolvedOrder = state.activeOrder!.copyWith(
+          status: resolvedEvent.orderStatus,
+        );
       }
 
       resolvedEvent = resolvedEvent.copyWith(order: resolvedOrder);

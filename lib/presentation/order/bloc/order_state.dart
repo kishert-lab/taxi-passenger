@@ -35,10 +35,10 @@ class OrderState extends Equatable {
 
   @override
   List<Object?> get props => [
-        activeOrder,
-        history,
-        isLoading,
-        isLoadingHistory,
-        errorMessage,
-      ];
+    activeOrder,
+    history,
+    isLoading,
+    isLoadingHistory,
+    errorMessage,
+  ];
 }

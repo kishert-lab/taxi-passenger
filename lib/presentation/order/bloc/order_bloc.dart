@@ -9,8 +9,8 @@ part 'order_state.dart';
 
 class OrderBloc extends Bloc<OrderEventAction, OrderState> {
   OrderBloc({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository,
-        super(const OrderState()) {
+    : _orderRepository = orderRepository,
+      super(const OrderState()) {
     on<OrderCreateRequested>(_onOrderCreateRequested);
     on<OrderCurrentRequested>(_onOrderCurrentRequested);
     on<OrderCancelRequested>(_onOrderCancelRequested);
@@ -24,19 +24,21 @@ class OrderBloc extends Bloc<OrderEventAction, OrderState> {
     OrderCreateRequested event,
     Emitter<OrderState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        isLoading: true,
-        clearError: true,
-      ),
-    );
+    emit(state.copyWith(isLoading: true, clearError: true));
     try {
       final order = await _orderRepository.createOrder(
         pickup: event.pickup,
         destination: event.destination,
-        tariffId: event.tariffId,
+        carClassId: event.carClassId,
+        paymentType: event.paymentType,
+        comment: event.comment,
+        pickupEntrance: event.pickupEntrance,
+        pickupComment: event.pickupComment,
+        passengerLocationSharingEnabled: event.passengerLocationSharingEnabled,
       );
-      emit(state.copyWith(isLoading: false, activeOrder: order, clearError: true));
+      emit(
+        state.copyWith(isLoading: false, activeOrder: order, clearError: true),
+      );
     } catch (error) {
       emit(
         state.copyWith(
@@ -79,12 +81,7 @@ class OrderBloc extends Bloc<OrderEventAction, OrderState> {
         order.id,
         reason: event.reason,
       );
-      emit(
-        state.copyWith(
-          activeOrder: cancelledOrder,
-          clearError: true,
-        ),
-      );
+      emit(state.copyWith(activeOrder: cancelledOrder, clearError: true));
     } catch (error) {
       emit(state.copyWith(errorMessage: _messageFromError(error)));
     }
@@ -94,12 +91,7 @@ class OrderBloc extends Bloc<OrderEventAction, OrderState> {
     OrderHistoryRequested event,
     Emitter<OrderState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        isLoadingHistory: true,
-        clearError: true,
-      ),
-    );
+    emit(state.copyWith(isLoadingHistory: true, clearError: true));
     try {
       final orders = await _orderRepository.loadOrders();
       emit(

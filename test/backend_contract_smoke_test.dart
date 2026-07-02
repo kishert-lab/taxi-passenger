@@ -5,33 +5,28 @@ import 'package:test/test.dart';
 
 void main() {
   group('Auth contract', () {
-    test('request/logout/refresh endpoints are passenger endpoints', () {
-      expect(
-        ApiEndpoints.requestCode,
-        '/api/v1/passenger/auth/request-code',
-      );
-      expect(
-        ApiEndpoints.refresh,
-        '/api/v1/passenger/auth/refresh',
-      );
-      expect(
-        ApiEndpoints.logout,
-        '/api/v1/passenger/auth/logout',
-      );
+    test('passenger auth/profile/push endpoints match mobile contract', () {
+      expect(ApiEndpoints.requestCode, '/api/v1/passenger/auth/request-code');
+      expect(ApiEndpoints.refresh, '/api/v1/passenger/auth/refresh');
+      expect(ApiEndpoints.logout, '/api/v1/passenger/auth/logout');
+      expect(ApiEndpoints.me, '/api/v1/passenger/me');
+      expect(ApiEndpoints.pushToken, '/api/v1/passenger/push/token');
     });
 
-    test('confirm-code envelope parses tokens and passenger', () {
+    test('confirm-code envelope parses nested tokens and passenger', () {
       final session = PassengerAuthSession.fromResponse({
         'data': {
-          'access_token': 'access-1',
-          'refresh_token': 'refresh-1',
-          'token_type': 'Bearer',
-          'expires_in': 900,
           'passenger': {
             'id': 'passenger-1',
             'phone': '+79997778866',
-            'name': 'Ирина',
+            'name': 'Irina',
             'avatar_url': 'https://cdn/avatar.png',
+          },
+          'tokens': {
+            'access_token': 'access-1',
+            'refresh_token': 'refresh-1',
+            'token_type': 'Bearer',
+            'expires_in': 900,
           },
         },
       });
@@ -42,12 +37,14 @@ void main() {
       expect(session.passenger.avatarUrl, 'https://cdn/avatar.png');
     });
 
-    test('refresh envelope parses tokens', () {
+    test('refresh envelope parses nested tokens', () {
       final tokens = AuthTokens.fromResponse({
         'data': {
-          'access_token': 'access-2',
-          'refresh_token': 'refresh-2',
-          'expires_in': 900,
+          'tokens': {
+            'access_token': 'access-2',
+            'refresh_token': 'refresh-2',
+            'expires_in': 900,
+          },
         },
       });
 
@@ -74,140 +71,188 @@ void main() {
       expect(avatarPassenger.avatarUrl, 'https://cdn/b.png');
     });
 
-    test('address search point parses city_id and serializes to latitude/longitude', () {
+    test('address search point parses coordinates object', () {
       final point = GeoPoint.fromAddressSearchJson({
-        'name': 'Ленина 50',
-        'address': 'Екатеринбург, Ленина 50',
-        'city_id': 'city-1',
-        'coordinates': {
-          'latitude': 56.8389,
-          'longitude': 60.6057,
-        },
+        'name': 'Lenina 50',
+        'address': 'Ekaterinburg, Lenina 50',
+        'coordinates': {'latitude': 56.8389, 'longitude': 60.6057},
       });
 
-      expect(point.address, 'Екатеринбург, Ленина 50');
-      expect(point.cityId, 'city-1');
-      expect(point.toJson(), {
-        'latitude': 56.8389,
-        'longitude': 60.6057,
-      });
+      expect(point.address, 'Ekaterinburg, Lenina 50');
+      expect(point.toJson(), {'latitude': 56.8389, 'longitude': 60.6057});
     });
   });
 
-  group('Order DTO contract', () {
+  group('Catalog and order DTO contract', () {
+    test('car class parses backend dto', () {
+      final carClass = CarClass.fromJson({
+        'id': 'class-1',
+        'code': 'economy',
+        'name': 'Economy',
+        'description': 'Affordable city rides',
+        'base_price': '120.00',
+        'price_per_km': '18.00',
+        'price_per_minute': '6.00',
+        'minimum_price': '180.00',
+        'sort_order': 10,
+      });
+
+      expect(carClass.id, 'class-1');
+      expect(carClass.code, 'economy');
+      expect(carClass.name, 'Economy');
+      expect(carClass.description, 'Affordable city rides');
+      expect(carClass.minimumPrice, '180.00');
+      expect(carClass.sortOrder, 10);
+    });
+
     test('estimate request serializes backend payload', () {
       const request = OrderEstimateRequest(
-        cityId: 'city-1',
-        tariffId: 'tariff-1',
+        carClassId: 'class-1',
         pickupLocation: GeoPoint(
           lat: 56.8389,
           lng: 60.6057,
-          address: 'Ленина 1',
+          address: 'Lenina 1',
           cityId: 'city-1',
         ),
         destinationLocation: GeoPoint(
           lat: 56.8489,
           lng: 60.6157,
-          address: 'Мира 10',
+          address: 'Mira 10',
           cityId: 'city-1',
         ),
       );
 
       expect(request.toJson(), {
-        'city_id': 'city-1',
-        'tariff_id': 'tariff-1',
-        'pickup_location': {'latitude': 56.8389, 'longitude': 60.6057},
-        'destination_location': {'latitude': 56.8489, 'longitude': 60.6157},
+        'pickup': {
+          'address': 'Lenina 1',
+          'latitude': 56.8389,
+          'longitude': 60.6057,
+        },
+        'dropoff': {
+          'address': 'Mira 10',
+          'latitude': 56.8489,
+          'longitude': 60.6157,
+        },
+        'car_class_id': 'class-1',
       });
     });
 
     test('create order request serializes backend payload', () {
       const request = CreateOrderRequest(
-        cityId: 'city-1',
         pickupLocation: GeoPoint(
           lat: 56.8389,
           lng: 60.6057,
-          address: 'Ленина 1',
+          address: 'Lenina 1',
           cityId: 'city-1',
         ),
-        pickupAddress: 'Ленина 1',
+        pickupAddress: 'Lenina 1',
+        pickupEntrance: '2',
+        pickupComment: 'yard entrance',
         destinationLocation: GeoPoint(
           lat: 56.8489,
           lng: 60.6157,
-          address: 'Мира 10',
+          address: 'Mira 10',
           cityId: 'city-1',
         ),
-        destinationAddress: 'Мира 10',
-        tariffId: 'tariff-1',
+        destinationAddress: 'Mira 10',
+        carClassId: 'class-1',
         paymentType: 'cash',
-        comment: '',
-        passengerPhone: '+79997778866',
+        comment: 'Luggage',
+        passengerLocationSharingEnabled: true,
       );
 
       expect(request.toJson(), {
-        'city_id': 'city-1',
-        'pickup_location': {'latitude': 56.8389, 'longitude': 60.6057},
-        'pickup_address': 'Ленина 1',
-        'destination_location': {'latitude': 56.8489, 'longitude': 60.6157},
-        'destination_address': 'Мира 10',
-        'tariff_id': 'tariff-1',
-        'payment_type': 'cash',
-        'comment': '',
-        'passenger_phone': '+79997778866',
+        'pickup': {
+          'address': 'Lenina 1',
+          'latitude': 56.8389,
+          'longitude': 60.6057,
+        },
+        'dropoff': {
+          'address': 'Mira 10',
+          'latitude': 56.8489,
+          'longitude': 60.6157,
+        },
+        'car_class_id': 'class-1',
+        'payment_method': 'cash',
+        'comment': 'Luggage',
       });
     });
 
     test('estimate response parses backend dto', () {
       final estimate = RouteEstimate.fromJson({
-        'tariff_id': 'tariff-1',
-        'tariff_name': 'Economy',
-        'distance_km': 4.2,
-        'duration_min': 11,
-        'price': 250,
+        'distance_meters': 4200,
+        'duration_seconds': 660,
+        'estimated_price': '250.00',
         'currency': 'RUB',
-        'price_type': 'estimated',
+        'car_class_id': 'class-1',
+        'car_class': {'id': 'class-1', 'name': 'Economy'},
       });
 
-      expect(estimate.tariffId, 'tariff-1');
+      expect(estimate.carClassId, 'class-1');
       expect(estimate.etaMinutes, 11);
       expect(estimate.price, 250);
-      expect(estimate.tariffs.single.id, 'tariff-1');
+      expect(estimate.carClassName, 'Economy');
     });
 
     test('current order and history parse passenger order dto', () {
-      final current = PassengerOrderResponse.fromJson(_orderJson('driver_arriving'));
+      final current = PassengerOrderResponse.fromJson({
+        'order': _orderJson('arrived'),
+      });
       final history = OrderHistoryResponse.fromJson({
         'orders': [_orderJson('completed')],
       });
 
       expect(current.id, 'order-1');
       expect(current.status, OrderStatus.driverArriving);
-      expect(current.pickup.address, 'Ленина 1');
-      expect(current.car?.plateNumber, 'А123АА96');
+      expect(current.pickup.address, 'Lenina 1');
+      expect(current.car?.plateNumber, 'A123AA96');
+      expect(current.paymentType, 'cash');
+      expect(current.carClassId, 'class-1');
       expect(history.orders.single.status, OrderStatus.completed);
     });
   });
 
-  group('WebSocket contract', () {
-    test('sync.required and driver.location_updated parse correctly', () {
-      final sync = OrderEvent.fromJson({
-        'event': 'sync.required',
-        'request_id': 'req-1',
-        'occurred_at': '2026-06-30T10:00:00Z',
-        'payload': {'reason': 'reconnect'},
+  group('Chat and WebSocket contract', () {
+    test('chat message parses new passenger response', () {
+      final message = ChatMessage.fromJson({
+        'id': 'msg-1',
+        'thread_id': 'thread-1',
+        'order_id': 'order-1',
+        'chat_type': 'driver_passenger',
+        'sender_id': 'passenger-1',
+        'sender_user_id': null,
+        'sender_passenger_id': 'passenger-1',
+        'sender_role': 'passenger',
+        'body': 'I am at the entrance',
+        'created_at': '2026-06-30T10:00:00Z',
+      });
+
+      expect(message.id, 'msg-1');
+      expect(message.senderId, 'passenger-1');
+      expect(message.senderPassengerId, 'passenger-1');
+      expect(message.senderUserId, isNull);
+      expect(message.isPassengerMessage, isTrue);
+    });
+
+    test('ws order events parse current backend shape', () {
+      final ready = OrderEvent.fromJson({
+        'type': 'session.ready',
+        'payload': {
+          'passenger_id': 'passenger-1',
+          'connected_at': '2026-06-30T10:00:00Z',
+        },
       });
       final location = OrderEvent.fromJson({
-        'event': 'driver.location_updated',
-        'request_id': 'req-2',
-        'occurred_at': '2026-06-30T10:00:01Z',
+        'type': 'order.driver_location',
         'payload': {
           'order_id': 'order-1',
-          'status': 'driver_arriving',
+          'status': 'arrived',
           'location': {'latitude': 56.84, 'longitude': 60.60},
+          'recorded_at': '2026-06-30T10:00:01Z',
         },
       });
 
-      expect(sync.isSyncRequired, isTrue);
+      expect(ready.event, 'session.ready');
       expect(location.orderStatus, OrderStatus.driverArriving);
       expect(location.driverLocation?.lat, 56.84);
       expect(location.driverLocation?.lng, 60.60);
@@ -217,40 +262,32 @@ void main() {
 
 Map<String, dynamic> _orderJson(String status) {
   return {
-    'order_id': 'order-1',
-    'driver': {
-      'id': 'driver-1',
-      'name': 'Иван',
-      'phone': '+79990000000',
-      'photo_url': 'https://cdn/driver.png',
-      'rating': 4.9,
-      'ratings_count': 10,
-    },
+    'id': 'order-1',
+    'driver': {'id': 'driver-1', 'first_name': 'Ivan', 'phone': '+79990000000'},
     'car': {
       'id': 'car-1',
       'brand': 'Lada',
       'model': 'Vesta',
       'color': 'White',
-      'plate_number': 'А123АА96',
+      'plate_number': 'A123AA96',
     },
-    'pickup_point': {
-      'address': 'Ленина 1',
-      'location': {'latitude': 56.8389, 'longitude': 60.6057},
+    'pickup': {
+      'address': 'Lenina 1',
+      'latitude': 56.8389,
+      'longitude': 60.6057,
     },
-    'destination_point': {
-      'address': 'Мира 10',
-      'location': {'latitude': 56.8489, 'longitude': 60.6157},
+    'dropoff': {
+      'address': 'Mira 10',
+      'latitude': 56.8489,
+      'longitude': 60.6157,
     },
     'status': status,
-    'price': {'amount': 250, 'currency': 'RUB'},
+    'estimated_price': '250.00',
+    'currency': 'RUB',
     'eta_seconds': 420,
-    'allowed_actions': ['cancel'],
-    'timeline': [
-      {
-        'status': status,
-        'occurred_at': '2026-06-30T10:00:00Z',
-      },
-    ],
-    'version': 3,
+    'payment_method': 'cash',
+    'comment': 'Luggage',
+    'car_class_id': 'class-1',
+    'created_at': '2026-06-30T10:00:00Z',
   };
 }

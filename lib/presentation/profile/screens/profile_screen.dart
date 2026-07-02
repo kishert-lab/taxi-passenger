@@ -19,7 +19,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<PassengerProfileBloc>().add(const PassengerProfileLoadRequested());
+    context.read<PassengerProfileBloc>().add(
+      const PassengerProfileLoadRequested(),
+    );
   }
 
   @override
@@ -65,9 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   TextFormField(
                     initialValue: passenger.phone,
                     enabled: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Телефон',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Телефон'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -75,18 +75,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: const InputDecoration(labelText: 'Email'),
                   ),
                   const SizedBox(height: 16),
-                  if (state.errorMessage != null) ErrorText(state.errorMessage!),
+                  if (state.errorMessage != null)
+                    ErrorText(state.errorMessage!),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: state.isSaving
                         ? null
                         : () {
                             context.read<PassengerProfileBloc>().add(
-                                  PassengerProfileUpdateRequested(
-                                    name: _nameController.text.trim(),
-                                    email: _emailController.text.trim(),
-                                  ),
-                                );
+                              PassengerProfileUpdateRequested(
+                                name: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                              ),
+                            );
                           },
                     child: state.isSaving
                         ? const CircularProgressIndicator(color: Colors.white)

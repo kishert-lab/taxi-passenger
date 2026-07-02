@@ -8,8 +8,8 @@ part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(const AuthState()) {
+    : _authRepository = authRepository,
+      super(const AuthState()) {
     on<AuthBootstrapRequested>(_onBootstrapRequested);
     on<AuthRequestCodeSubmitted>(_onRequestCodeSubmitted);
     on<AuthConfirmCodeSubmitted>(_onConfirmCodeSubmitted);
@@ -41,10 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.requestCode(event.phone);
       emit(
-        state.copyWith(
-          status: AuthStatus.codeRequested,
-          phone: event.phone,
-        ),
+        state.copyWith(status: AuthStatus.codeRequested, phone: event.phone),
       );
     } catch (error) {
       emit(
@@ -67,7 +64,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         code: event.code,
         name: event.name,
       );
-      emit(state.copyWith(status: AuthStatus.authenticated, phone: event.phone));
+      emit(
+        state.copyWith(status: AuthStatus.authenticated, phone: event.phone),
+      );
     } catch (error) {
       emit(
         state.copyWith(

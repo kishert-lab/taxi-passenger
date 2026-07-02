@@ -23,7 +23,8 @@ class Passenger extends Equatable {
       phone: json['phone']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      avatarUrl: json['avatar_url']?.toString() ??
+      avatarUrl:
+          json['avatar_url']?.toString() ??
           json['avatar']?.toString() ??
           json['photo_url']?.toString() ??
           '',
@@ -31,18 +32,14 @@ class Passenger extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'phone': phone,
-        'name': name,
-        'email': email,
-        'avatar_url': avatarUrl,
-      };
+    'id': id,
+    'phone': phone,
+    'name': name,
+    'email': email,
+    'avatar_url': avatarUrl,
+  };
 
-  Passenger copyWith({
-    String? name,
-    String? email,
-    String? avatarUrl,
-  }) {
+  Passenger copyWith({String? name, String? email, String? avatarUrl}) {
     return Passenger(
       id: id,
       phone: phone,
@@ -71,10 +68,12 @@ class GeoPoint extends Equatable {
 
   factory GeoPoint.fromJson(Map<String, dynamic> json) {
     return GeoPoint(
-      lat: (json['latitude'] as num?)?.toDouble() ??
+      lat:
+          (json['latitude'] as num?)?.toDouble() ??
           (json['lat'] as num?)?.toDouble() ??
           0,
-      lng: (json['longitude'] as num?)?.toDouble() ??
+      lng:
+          (json['longitude'] as num?)?.toDouble() ??
           (json['lng'] as num?)?.toDouble() ??
           0,
       address: json['address']?.toString() ?? '',
@@ -88,16 +87,22 @@ class GeoPoint extends Equatable {
     String? cityId,
   }) {
     return GeoPoint(
-      lat: (json['latitude'] as num?)?.toDouble() ?? 0,
-      lng: (json['longitude'] as num?)?.toDouble() ?? 0,
+      lat:
+          (json['latitude'] as num?)?.toDouble() ??
+          (json['lat'] as num?)?.toDouble() ??
+          0,
+      lng:
+          (json['longitude'] as num?)?.toDouble() ??
+          (json['lng'] as num?)?.toDouble() ??
+          0,
       address: address,
       cityId: cityId,
     );
   }
 
   factory GeoPoint.fromAddressSearchJson(Map<String, dynamic> json) {
-    final coordinates = json['coordinates'] as Map<String, dynamic>? ??
-        <String, dynamic>{};
+    final coordinates =
+        json['coordinates'] as Map<String, dynamic>? ?? <String, dynamic>{};
     return GeoPoint(
       lat: (coordinates['latitude'] as num?)?.toDouble() ?? 0,
       lng: (coordinates['longitude'] as num?)?.toDouble() ?? 0,
@@ -108,10 +113,7 @@ class GeoPoint extends Equatable {
 
   Map<String, dynamic> toJson() => toLocationJson();
 
-  Map<String, dynamic> toLocationJson() => {
-        'latitude': lat,
-        'longitude': lng,
-      };
+  Map<String, dynamic> toLocationJson() => {'latitude': lat, 'longitude': lng};
 
   GeoPoint copyWith({
     double? lat,
@@ -152,115 +154,194 @@ class NearbyCar extends Equatable {
 
   factory NearbyCar.fromJson(Map<String, dynamic> json) {
     return NearbyCar(
-      driverId: json['driver_id']?.toString() ?? json['driverId']?.toString() ?? '',
+      driverId:
+          json['driver_id']?.toString() ?? json['driverId']?.toString() ?? '',
       carId: json['car_id']?.toString() ?? json['carId']?.toString() ?? '',
       lat: (json['lat'] as num?)?.toDouble() ?? 0,
       lng: (json['lng'] as num?)?.toDouble() ?? 0,
-      distanceMeters: (json['distance_meters'] as num?)?.toInt() ??
+      distanceMeters:
+          (json['distance_meters'] as num?)?.toInt() ??
           (json['distanceMeters'] as num?)?.toInt() ??
           0,
-      etaMinutes: (json['eta_minutes'] as num?)?.toInt() ??
+      etaMinutes:
+          (json['eta_minutes'] as num?)?.toInt() ??
           (json['etaMinutes'] as num?)?.toInt() ??
           0,
-      carClass: json['car_class']?.toString() ??
-          json['carClass']?.toString() ??
-          '',
+      carClass:
+          json['car_class']?.toString() ?? json['carClass']?.toString() ?? '',
     );
   }
 
   @override
   List<Object?> get props => [
-        driverId,
-        carId,
-        lat,
-        lng,
-        distanceMeters,
-        etaMinutes,
-        carClass,
-      ];
+    driverId,
+    carId,
+    lat,
+    lng,
+    distanceMeters,
+    etaMinutes,
+    carClass,
+  ];
 }
 
-class Tariff extends Equatable {
-  const Tariff({
+class CarClass extends Equatable {
+  const CarClass({
     required this.id,
+    required this.code,
     required this.name,
     required this.description,
+    required this.basePrice,
+    required this.pricePerKm,
+    required this.pricePerMinute,
+    required this.minimumPrice,
+    required this.sortOrder,
   });
 
   final String id;
+  final String code;
   final String name;
   final String description;
+  final String basePrice;
+  final String pricePerKm;
+  final String pricePerMinute;
+  final String minimumPrice;
+  final int sortOrder;
 
-  factory Tariff.fromJson(Map<String, dynamic> json) {
-    return Tariff(
+  factory CarClass.fromJson(Map<String, dynamic> json) {
+    final basePrice = json['base_price']?.toString() ?? '';
+    final pricePerKm = json['price_per_km']?.toString() ?? '';
+    final pricePerMinute = json['price_per_minute']?.toString() ?? '';
+    final minimumPrice = json['minimum_price']?.toString() ?? '';
+    final description =
+        json['description']?.toString() ??
+        json['subtitle']?.toString() ??
+        _buildPricingDescription(
+          basePrice: basePrice,
+          minimumPrice: minimumPrice,
+        );
+
+    return CarClass(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
+      code: json['code']?.toString() ?? '',
+      name: json['name']?.toString() ?? json['title']?.toString() ?? '',
+      description: description,
+      basePrice: basePrice,
+      pricePerKm: pricePerKm,
+      pricePerMinute: pricePerMinute,
+      minimumPrice: minimumPrice,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 
+  static String _buildPricingDescription({
+    required String basePrice,
+    required String minimumPrice,
+  }) {
+    if (minimumPrice.isNotEmpty) {
+      return 'от $minimumPrice';
+    }
+
+    if (basePrice.isNotEmpty) {
+      return basePrice;
+    }
+
+    return '';
+  }
+
   @override
-  List<Object?> get props => [id, name, description];
+  List<Object?> get props => [
+    id,
+    code,
+    name,
+    description,
+    basePrice,
+    pricePerKm,
+    pricePerMinute,
+    minimumPrice,
+    sortOrder,
+  ];
 }
+
+typedef Tariff = CarClass;
 
 class RouteEstimate extends Equatable {
   const RouteEstimate({
-    required this.tariffId,
-    required this.tariffName,
+    required this.carClassId,
+    required this.carClassName,
     required this.distanceKm,
     required this.etaMinutes,
     required this.price,
     required this.currency,
     required this.priceType,
-    required this.tariffs,
   });
 
-  final String tariffId;
-  final String tariffName;
+  final String carClassId;
+  final String carClassName;
   final double distanceKm;
   final int etaMinutes;
   final double price;
   final String currency;
   final String priceType;
-  final List<Tariff> tariffs;
+
+  String get tariffId => carClassId;
+  String get tariffName => carClassName;
+  List<CarClass> get tariffs => const [];
 
   factory RouteEstimate.fromJson(Map<String, dynamic> json) {
-    final tariffId = json['tariff_id']?.toString() ?? '';
-    final tariffName = json['tariff_name']?.toString() ?? 'Тариф';
-    final price = (json['price'] as num?)?.toDouble() ?? 0;
-    final currency = json['currency']?.toString() ?? 'RUB';
+    final carClass =
+        json['car_class'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final amount = _parseDoubleValue(json['estimated_price'] ?? json['price']);
+    final distanceMeters = (json['distance_meters'] as num?)?.toDouble();
 
     return RouteEstimate(
-      tariffId: tariffId,
-      tariffName: tariffName,
-      distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0,
-      etaMinutes: (json['duration_min'] as num?)?.toInt() ?? 0,
-      price: price,
-      currency: currency,
+      carClassId:
+          json['car_class_id']?.toString() ??
+          carClass['id']?.toString() ??
+          json['tariff_id']?.toString() ??
+          '',
+      carClassName:
+          json['car_class_name']?.toString() ??
+          carClass['name']?.toString() ??
+          json['class_name']?.toString() ??
+          json['tariff_name']?.toString() ??
+          '',
+      distanceKm: distanceMeters != null
+          ? distanceMeters / 1000
+          : (json['distance_km'] as num?)?.toDouble() ?? 0,
+      etaMinutes: _resolveEtaMinutes(json),
+      price: amount,
+      currency: json['currency']?.toString() ?? 'RUB',
       priceType: json['price_type']?.toString() ?? 'estimated',
-      tariffs: tariffId.isEmpty
-          ? const []
-          : [
-              Tariff(
-                id: tariffId,
-                name: tariffName,
-                description: '${price.toStringAsFixed(0)} $currency',
-              ),
-            ],
     );
+  }
+
+  static int _resolveEtaMinutes(Map<String, dynamic> json) {
+    final durationSeconds = (json['duration_seconds'] as num?)?.toInt();
+    if (durationSeconds != null) {
+      return (durationSeconds / 60).ceil();
+    }
+    return (json['duration_min'] as num?)?.toInt() ??
+        (json['eta_minutes'] as num?)?.toInt() ??
+        0;
+  }
+
+  static double _parseDoubleValue(Object? value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   @override
   List<Object?> get props => [
-        tariffId,
-        tariffName,
-        distanceKm,
-        etaMinutes,
-        price,
-        currency,
-        priceType,
-        tariffs,
-      ];
+    carClassId,
+    carClassName,
+    distanceKm,
+    etaMinutes,
+    price,
+    currency,
+    priceType,
+  ];
 }
 
 enum OrderStatus {
@@ -276,13 +357,17 @@ enum OrderStatus {
 
 OrderStatus orderStatusFromString(String value) {
   switch (value) {
+    case 'accepted':
     case 'driver_assigned':
       return OrderStatus.assigned;
+    case 'arrived':
     case 'driver_arriving':
       return OrderStatus.driverArriving;
     case 'driver_waiting':
       return OrderStatus.driverWaiting;
+    case 'started':
     case 'trip_started':
+    case 'in_progress':
       return OrderStatus.inProgress;
     case 'completed':
       return OrderStatus.completed;
@@ -319,7 +404,7 @@ String orderStatusToBackendValue(OrderStatus status) {
 String orderStatusLabel(OrderStatus status) {
   switch (status) {
     case OrderStatus.searching:
-      return 'Ищем водителя';
+      return 'Поиск водителя';
     case OrderStatus.assigned:
       return 'Водитель назначен';
     case OrderStatus.driverArriving:
@@ -338,10 +423,7 @@ String orderStatusLabel(OrderStatus status) {
 }
 
 class MoneyResponse extends Equatable {
-  const MoneyResponse({
-    required this.amount,
-    required this.currency,
-  });
+  const MoneyResponse({required this.amount, required this.currency});
 
   final int amount;
   final String currency;
@@ -358,20 +440,29 @@ class MoneyResponse extends Equatable {
 }
 
 class PointDTO extends Equatable {
-  const PointDTO({
-    required this.address,
-    required this.location,
-  });
+  const PointDTO({required this.address, required this.location});
 
   final String address;
   final GeoPoint location;
 
   factory PointDTO.fromJson(Map<String, dynamic> json) {
+    final locationJson =
+        json['location'] as Map<String, dynamic>? ??
+        json['coordinates'] as Map<String, dynamic>? ??
+        ((json['latitude'] != null || json['longitude'] != null)
+            ? <String, dynamic>{
+                'latitude': json['latitude'],
+                'longitude': json['longitude'],
+              }
+            : null) ??
+        <String, dynamic>{};
+
     return PointDTO(
       address: json['address']?.toString() ?? '',
       location: GeoPoint.fromCoordinatesJson(
-        json['location'] as Map<String, dynamic>? ?? <String, dynamic>{},
+        locationJson,
         address: json['address']?.toString() ?? '',
+        cityId: json['city_id']?.toString(),
       ),
     );
   }
@@ -406,9 +497,8 @@ class DriverDTO extends Equatable {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
-      photoUrl: json['photo_url']?.toString() ??
-          json['avatar']?.toString() ??
-          '',
+      photoUrl:
+          json['photo_url']?.toString() ?? json['avatar']?.toString() ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0,
       ratingsCount: (json['ratings_count'] as num?)?.toInt() ?? 0,
     );
@@ -441,10 +531,13 @@ class CarDTO extends Equatable {
       brand: json['brand']?.toString() ?? '',
       model: json['model']?.toString() ?? '',
       color: json['color']?.toString() ?? '',
-      plateNumber: json['plate_number']?.toString() ??
+      plateNumber:
+          json['plate_number']?.toString() ??
           json['plateNumber']?.toString() ??
           '',
-      className: json['class_name']?.toString() ??
+      className:
+          json['class_name']?.toString() ??
+          json['car_class_name']?.toString() ??
           json['className']?.toString() ??
           '',
     );
@@ -455,10 +548,7 @@ class CarDTO extends Equatable {
 }
 
 class OrderTimelineItem extends Equatable {
-  const OrderTimelineItem({
-    required this.status,
-    required this.occurredAt,
-  });
+  const OrderTimelineItem({required this.status, required this.occurredAt});
 
   final OrderStatus status;
   final DateTime occurredAt;
@@ -466,7 +556,8 @@ class OrderTimelineItem extends Equatable {
   factory OrderTimelineItem.fromJson(Map<String, dynamic> json) {
     return OrderTimelineItem(
       status: orderStatusFromString(json['status']?.toString() ?? ''),
-      occurredAt: DateTime.tryParse(json['occurred_at']?.toString() ?? '') ??
+      occurredAt:
+          DateTime.tryParse(json['occurred_at']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -484,6 +575,13 @@ class PassengerOrderResponse extends Equatable {
     required this.allowedActions,
     required this.timeline,
     required this.version,
+    required this.paymentType,
+    required this.comment,
+    required this.pickupEntrance,
+    required this.pickupComment,
+    required this.passengerLocationSharingEnabled,
+    required this.carClassId,
+    required this.createdAtValue,
     this.driver,
     this.car,
     this.price,
@@ -501,6 +599,13 @@ class PassengerOrderResponse extends Equatable {
   final List<String> allowedActions;
   final List<OrderTimelineItem> timeline;
   final int version;
+  final String paymentType;
+  final String comment;
+  final String pickupEntrance;
+  final String pickupComment;
+  final bool passengerLocationSharingEnabled;
+  final String carClassId;
+  final DateTime createdAtValue;
 
   String get id => orderId;
   GeoPoint get pickup => pickupPoint.toGeoPoint();
@@ -509,40 +614,112 @@ class PassengerOrderResponse extends Equatable {
   int get etaMinutes => etaSeconds == null ? 0 : (etaSeconds! / 60).ceil();
   int get distanceMeters => 0;
   DateTime get createdAt =>
-      timeline.isNotEmpty ? timeline.first.occurredAt : DateTime.now();
-  String get tariffId => '';
-  String get paymentMethod => 'cash';
+      timeline.isNotEmpty ? timeline.first.occurredAt : createdAtValue;
+  String get tariffId => carClassId;
+  String get paymentMethod => paymentType;
 
   factory PassengerOrderResponse.fromJson(Map<String, dynamic> json) {
-    final timelineJson = (json['timeline'] as List<dynamic>? ?? [])
+    final source = json['order'] as Map<String, dynamic>? ?? json;
+    final timelineJson = (source['timeline'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(OrderTimelineItem.fromJson)
         .toList();
 
+    final pickupPoint = _parsePoint(
+      nested:
+          source['pickup_point'] as Map<String, dynamic>? ??
+          source['pickup'] as Map<String, dynamic>?,
+      location: source['pickup_location'] as Map<String, dynamic>?,
+      address: source['pickup_address']?.toString(),
+      cityId: source['city_id']?.toString(),
+    );
+    final destinationPoint = _parsePoint(
+      nested:
+          source['destination_point'] as Map<String, dynamic>? ??
+          source['dropoff'] as Map<String, dynamic>? ??
+          source['destination'] as Map<String, dynamic>?,
+      location: source['destination_location'] as Map<String, dynamic>?,
+      address: source['destination_address']?.toString(),
+      cityId: source['city_id']?.toString(),
+    );
+
+    final priceJson =
+        source['price'] ?? source['estimated_price'] ?? source['final_price'];
+    final etaSeconds =
+        (source['eta_seconds'] as num?)?.toInt() ??
+        ((source['eta_minutes'] as num?)?.toInt() != null
+            ? (source['eta_minutes'] as num).toInt() * 60
+            : null);
+
     return PassengerOrderResponse(
-      orderId: json['order_id']?.toString() ?? json['id']?.toString() ?? '',
-      driver: json['driver'] is Map<String, dynamic>
-          ? DriverDTO.fromJson(json['driver'] as Map<String, dynamic>)
+      orderId: source['order_id']?.toString() ?? source['id']?.toString() ?? '',
+      driver: source['driver'] is Map<String, dynamic>
+          ? DriverDTO.fromJson(source['driver'] as Map<String, dynamic>)
           : null,
-      car: json['car'] is Map<String, dynamic>
-          ? CarDTO.fromJson(json['car'] as Map<String, dynamic>)
+      car: source['car'] is Map<String, dynamic>
+          ? CarDTO.fromJson(source['car'] as Map<String, dynamic>)
           : null,
-      pickupPoint: PointDTO.fromJson(
-        json['pickup_point'] as Map<String, dynamic>? ?? <String, dynamic>{},
-      ),
-      destinationPoint: PointDTO.fromJson(
-        json['destination_point'] as Map<String, dynamic>? ?? <String, dynamic>{},
-      ),
-      status: orderStatusFromString(json['status']?.toString() ?? ''),
-      price: json['price'] is Map<String, dynamic>
-          ? MoneyResponse.fromJson(json['price'] as Map<String, dynamic>)
+      pickupPoint: pickupPoint,
+      destinationPoint: destinationPoint,
+      status: orderStatusFromString(source['status']?.toString() ?? ''),
+      price: priceJson is Map<String, dynamic>
+          ? MoneyResponse.fromJson(priceJson)
+          : priceJson != null
+          ? MoneyResponse(
+              amount: _parseMoneyAmount(priceJson),
+              currency: source['currency']?.toString() ?? 'RUB',
+            )
           : null,
-      etaSeconds: (json['eta_seconds'] as num?)?.toInt(),
-      allowedActions: (json['allowed_actions'] as List<dynamic>? ?? [])
+      etaSeconds: etaSeconds,
+      allowedActions: (source['allowed_actions'] as List<dynamic>? ?? [])
           .map((item) => item.toString())
           .toList(),
       timeline: timelineJson,
-      version: (json['version'] as num?)?.toInt() ?? 0,
+      version: (source['version'] as num?)?.toInt() ?? 0,
+      paymentType:
+          source['payment_method']?.toString() ??
+          source['payment_type']?.toString() ??
+          'cash',
+      comment: source['comment']?.toString() ?? '',
+      pickupEntrance: source['pickup_entrance']?.toString() ?? '',
+      pickupComment: source['pickup_comment']?.toString() ?? '',
+      passengerLocationSharingEnabled:
+          source['passenger_location_sharing_enabled'] == true,
+      carClassId:
+          source['car_class_id']?.toString() ??
+          source['tariff_id']?.toString() ??
+          '',
+      createdAtValue:
+          DateTime.tryParse(source['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+
+  static int _parseMoneyAmount(Object value) {
+    if (value is num) {
+      return value.round();
+    }
+
+    return (double.tryParse(value.toString()) ?? 0).round();
+  }
+
+  static PointDTO _parsePoint({
+    required Map<String, dynamic>? nested,
+    required Map<String, dynamic>? location,
+    required String? address,
+    required String? cityId,
+  }) {
+    if (nested != null) {
+      return PointDTO.fromJson(nested);
+    }
+
+    return PointDTO(
+      address: address ?? '',
+      location: GeoPoint.fromCoordinatesJson(
+        location ?? <String, dynamic>{},
+        address: address ?? '',
+        cityId: cityId,
+      ),
     );
   }
 
@@ -557,6 +734,13 @@ class PassengerOrderResponse extends Equatable {
     List<String>? allowedActions,
     List<OrderTimelineItem>? timeline,
     int? version,
+    String? paymentType,
+    String? comment,
+    String? pickupEntrance,
+    String? pickupComment,
+    bool? passengerLocationSharingEnabled,
+    String? carClassId,
+    DateTime? createdAtValue,
   }) {
     return PassengerOrderResponse(
       orderId: orderId,
@@ -570,23 +754,39 @@ class PassengerOrderResponse extends Equatable {
       allowedActions: allowedActions ?? this.allowedActions,
       timeline: timeline ?? this.timeline,
       version: version ?? this.version,
+      paymentType: paymentType ?? this.paymentType,
+      comment: comment ?? this.comment,
+      pickupEntrance: pickupEntrance ?? this.pickupEntrance,
+      pickupComment: pickupComment ?? this.pickupComment,
+      passengerLocationSharingEnabled:
+          passengerLocationSharingEnabled ??
+          this.passengerLocationSharingEnabled,
+      carClassId: carClassId ?? this.carClassId,
+      createdAtValue: createdAtValue ?? this.createdAtValue,
     );
   }
 
   @override
   List<Object?> get props => [
-        orderId,
-        driver,
-        car,
-        pickupPoint,
-        destinationPoint,
-        status,
-        price,
-        etaSeconds,
-        allowedActions,
-        timeline,
-        version,
-      ];
+    orderId,
+    driver,
+    car,
+    pickupPoint,
+    destinationPoint,
+    status,
+    price,
+    etaSeconds,
+    allowedActions,
+    timeline,
+    version,
+    paymentType,
+    comment,
+    pickupEntrance,
+    pickupComment,
+    passengerLocationSharingEnabled,
+    carClassId,
+    createdAtValue,
+  ];
 }
 
 typedef Order = PassengerOrderResponse;
@@ -598,12 +798,27 @@ class OrderHistoryResponse extends Equatable {
 
   final List<PassengerOrderResponse> orders;
 
-  factory OrderHistoryResponse.fromJson(Map<String, dynamic> json) {
-    final orders = (json['orders'] as List<dynamic>? ?? [])
-        .whereType<Map<String, dynamic>>()
-        .map(PassengerOrderResponse.fromJson)
-        .toList();
-    return OrderHistoryResponse(orders: orders);
+  factory OrderHistoryResponse.fromJson(dynamic json) {
+    if (json is List<dynamic>) {
+      return OrderHistoryResponse(
+        orders: json
+            .whereType<Map<String, dynamic>>()
+            .map(PassengerOrderResponse.fromJson)
+            .toList(),
+      );
+    }
+
+    final map = json as Map<String, dynamic>? ?? <String, dynamic>{};
+    final ordersJson =
+        (map['orders'] as List<dynamic>? ??
+                (map['history'] as List<dynamic>?) ??
+                map['items'] as List<dynamic>? ??
+                const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+    return OrderHistoryResponse(
+      orders: ordersJson.map(PassengerOrderResponse.fromJson).toList(),
+    );
   }
 
   @override
@@ -612,80 +827,194 @@ class OrderHistoryResponse extends Equatable {
 
 class OrderEstimateRequest extends Equatable {
   const OrderEstimateRequest({
-    required this.cityId,
-    required this.tariffId,
     required this.pickupLocation,
     required this.destinationLocation,
+    required this.carClassId,
   });
 
-  final String cityId;
-  final String tariffId;
   final GeoPoint pickupLocation;
   final GeoPoint destinationLocation;
+  final String carClassId;
 
   Map<String, dynamic> toJson() => {
-        'city_id': cityId,
-        'tariff_id': tariffId,
-        'pickup_location': pickupLocation.toLocationJson(),
-        'destination_location': destinationLocation.toLocationJson(),
-      };
+    'pickup': {
+      'address': pickupLocation.address,
+      'latitude': pickupLocation.lat,
+      'longitude': pickupLocation.lng,
+    },
+    'dropoff': {
+      'address': destinationLocation.address,
+      'latitude': destinationLocation.lat,
+      'longitude': destinationLocation.lng,
+    },
+    'car_class_id': carClassId,
+  };
 
   @override
-  List<Object?> get props => [
-        cityId,
-        tariffId,
-        pickupLocation,
-        destinationLocation,
-      ];
+  List<Object?> get props => [pickupLocation, destinationLocation, carClassId];
 }
 
 class CreateOrderRequest extends Equatable {
   const CreateOrderRequest({
-    required this.cityId,
     required this.pickupLocation,
     required this.pickupAddress,
     required this.destinationLocation,
     required this.destinationAddress,
-    required this.tariffId,
+    required this.carClassId,
     required this.paymentType,
     required this.comment,
-    required this.passengerPhone,
+    required this.pickupEntrance,
+    required this.pickupComment,
+    required this.passengerLocationSharingEnabled,
   });
 
-  final String cityId;
   final GeoPoint pickupLocation;
   final String pickupAddress;
   final GeoPoint destinationLocation;
   final String destinationAddress;
-  final String tariffId;
+  final String carClassId;
   final String paymentType;
   final String comment;
-  final String passengerPhone;
+  final String pickupEntrance;
+  final String pickupComment;
+  final bool passengerLocationSharingEnabled;
 
   Map<String, dynamic> toJson() => {
-        'city_id': cityId,
-        'pickup_location': pickupLocation.toLocationJson(),
-        'pickup_address': pickupAddress,
-        'destination_location': destinationLocation.toLocationJson(),
-        'destination_address': destinationAddress,
-        'tariff_id': tariffId,
-        'payment_type': paymentType,
-        'comment': comment,
-        'passenger_phone': passengerPhone,
-      };
+    'pickup': {
+      'address': pickupAddress,
+      'latitude': pickupLocation.lat,
+      'longitude': pickupLocation.lng,
+    },
+    'dropoff': {
+      'address': destinationAddress,
+      'latitude': destinationLocation.lat,
+      'longitude': destinationLocation.lng,
+    },
+    'car_class_id': carClassId,
+    'payment_method': paymentType,
+    if (comment.isNotEmpty) 'comment': comment,
+  };
 
   @override
   List<Object?> get props => [
-        cityId,
-        pickupLocation,
-        pickupAddress,
-        destinationLocation,
-        destinationAddress,
-        tariffId,
-        paymentType,
-        comment,
-        passengerPhone,
-      ];
+    pickupLocation,
+    pickupAddress,
+    pickupEntrance,
+    pickupComment,
+    destinationLocation,
+    destinationAddress,
+    carClassId,
+    paymentType,
+    comment,
+    passengerLocationSharingEnabled,
+  ];
+}
+
+class ChatMessage extends Equatable {
+  const ChatMessage({
+    required this.id,
+    required this.threadId,
+    required this.orderId,
+    required this.chatType,
+    required this.senderId,
+    required this.senderUserId,
+    required this.senderPassengerId,
+    required this.senderRole,
+    required this.body,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String threadId;
+  final String? orderId;
+  final String chatType;
+  final String senderId;
+  final String? senderUserId;
+  final String? senderPassengerId;
+  final String senderRole;
+  final String body;
+  final DateTime createdAt;
+
+  bool get isPassengerMessage => senderRole == 'passenger';
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    final orderIdValue = json['order_id'];
+    final senderUserIdValue = json['sender_user_id'];
+    final senderPassengerIdValue = json['sender_passenger_id'];
+
+    return ChatMessage(
+      id: json['id']?.toString() ?? '',
+      threadId: json['thread_id']?.toString() ?? '',
+      orderId: orderIdValue == null || orderIdValue.toString().isEmpty
+          ? null
+          : orderIdValue.toString(),
+      chatType: json['chat_type']?.toString() ?? '',
+      senderId: json['sender_id']?.toString() ?? '',
+      senderUserId:
+          senderUserIdValue == null ||
+              senderUserIdValue.toString().isEmpty ||
+              senderUserIdValue.toString() == 'null'
+          ? null
+          : senderUserIdValue.toString(),
+      senderPassengerId:
+          senderPassengerIdValue == null ||
+              senderPassengerIdValue.toString().isEmpty ||
+              senderPassengerIdValue.toString() == 'null'
+          ? null
+          : senderPassengerIdValue.toString(),
+      senderRole: json['sender_role']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    threadId,
+    orderId,
+    chatType,
+    senderId,
+    senderUserId,
+    senderPassengerId,
+    senderRole,
+    body,
+    createdAt,
+  ];
+}
+
+class ChatMessagesResponse extends Equatable {
+  const ChatMessagesResponse({required this.messages});
+
+  final List<ChatMessage> messages;
+
+  factory ChatMessagesResponse.fromJson(dynamic json) {
+    if (json is List<dynamic>) {
+      return ChatMessagesResponse(
+        messages: json
+            .whereType<Map<String, dynamic>>()
+            .map(ChatMessage.fromJson)
+            .toList(),
+      );
+    }
+
+    final map = json as Map<String, dynamic>? ?? <String, dynamic>{};
+    final messagesJson =
+        (map['messages'] as List<dynamic>? ??
+                map['items'] as List<dynamic>? ??
+                const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+
+    return ChatMessagesResponse(
+      messages: messagesJson.map(ChatMessage.fromJson).toList(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [messages];
 }
 
 class OrderEvent extends Equatable {
@@ -713,14 +1042,26 @@ class OrderEvent extends Equatable {
   bool get affectsOrderState => event.startsWith('order.') || isSyncRequired;
 
   factory OrderEvent.fromJson(Map<String, dynamic> json) {
-    final payload = json['payload'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final payload =
+        json['payload'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final location = payload['location'] as Map<String, dynamic>?;
+    final timestamp =
+        payload['recorded_at']?.toString() ??
+        payload['assigned_at']?.toString() ??
+        payload['arrived_at']?.toString() ??
+        payload['started_at']?.toString() ??
+        payload['completed_at']?.toString() ??
+        payload['cancelled_at']?.toString() ??
+        json['occurred_at']?.toString() ??
+        '';
 
     return OrderEvent(
-      event: json['event']?.toString() ?? '',
-      requestId: json['request_id']?.toString() ?? '',
-      occurredAt: DateTime.tryParse(json['occurred_at']?.toString() ?? '') ??
-          DateTime.now(),
+      event: json['event']?.toString() ?? json['type']?.toString() ?? '',
+      requestId:
+          json['request_id']?.toString() ??
+          payload['request_id']?.toString() ??
+          '',
+      occurredAt: DateTime.tryParse(timestamp) ?? DateTime.now(),
       payload: payload,
       orderId: payload['order_id']?.toString(),
       orderStatus: payload['status'] == null
@@ -752,13 +1093,13 @@ class OrderEvent extends Equatable {
 
   @override
   List<Object?> get props => [
-        event,
-        requestId,
-        occurredAt,
-        payload,
-        order,
-        orderId,
-        orderStatus,
-        driverLocation,
-      ];
+    event,
+    requestId,
+    occurredAt,
+    payload,
+    order,
+    orderId,
+    orderStatus,
+    driverLocation,
+  ];
 }

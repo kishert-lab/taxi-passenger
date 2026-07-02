@@ -2,21 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:taxi_passenger/core/theme/app_colors.dart';
 import 'package:taxi_passenger/domain/models/models.dart';
 
-class TariffSelectWidget extends StatelessWidget {
-  const TariffSelectWidget({
+class CarClassSelectWidget extends StatelessWidget {
+  const CarClassSelectWidget({
     super.key,
-    required this.tariffs,
-    required this.selectedTariffId,
+    required this.carClasses,
+    required this.selectedCarClassId,
     required this.onSelected,
   });
 
-  final List<Tariff> tariffs;
-  final String selectedTariffId;
+  final List<CarClass> carClasses;
+  final String selectedCarClassId;
   final ValueChanged<String> onSelected;
+
+  String _buildSubtitle(CarClass carClass) {
+    if (carClass.description.isNotEmpty) {
+      return carClass.description;
+    }
+
+    if (carClass.minimumPrice.isNotEmpty) {
+      return 'от ${carClass.minimumPrice}';
+    }
+
+    return carClass.basePrice;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (tariffs.isEmpty) {
+    if (carClasses.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -24,14 +36,14 @@ class TariffSelectWidget extends StatelessWidget {
       height: 98,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: tariffs.length,
+        itemCount: carClasses.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final tariff = tariffs[index];
-          final selected = tariff.id == selectedTariffId;
+          final carClass = carClasses[index];
+          final selected = carClass.id == selectedCarClassId;
 
           return GestureDetector(
-            onTap: () => onSelected(tariff.id),
+            onTap: () => onSelected(carClass.id),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               width: 150,
@@ -47,7 +59,7 @@ class TariffSelectWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tariff.name,
+                    carClass.name,
                     style: TextStyle(
                       color: selected
                           ? AppColors.midnight
@@ -57,9 +69,13 @@ class TariffSelectWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    tariff.description,
+                    _buildSubtitle(carClass),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: selected ? AppColors.midnightSoft : AppColors.skyline,
+                      color: selected
+                          ? AppColors.midnightSoft
+                          : AppColors.skyline,
                     ),
                   ),
                 ],

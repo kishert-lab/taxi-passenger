@@ -34,10 +34,10 @@ class OrderRealtimeState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isConnected,
-        lastEvent,
-        activeOrder,
-        lastOrderStatus,
-        driverLocation,
-      ];
+    isConnected,
+    lastEvent,
+    activeOrder,
+    lastOrderStatus,
+    driverLocation,
+  ];
 }

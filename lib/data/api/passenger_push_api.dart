@@ -16,7 +16,12 @@ class PassengerPushApi {
     try {
       await _apiClient.post(
         ApiEndpoints.pushToken,
-        data: {'token': token, 'platform': platform, 'device_id': deviceId},
+        data: {
+          'provider': 'fcm',
+          'token': token,
+          'platform': platform,
+          'device_id': deviceId,
+        },
       );
     } on AppException catch (error) {
       if (error.statusCode == 404) {

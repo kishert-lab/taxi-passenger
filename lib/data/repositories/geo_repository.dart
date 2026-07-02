@@ -6,8 +6,8 @@ class GeoRepository {
   GeoRepository({
     required PassengerGeoApi geoApi,
     required CurrentLocationService currentLocationService,
-  })  : _geoApi = geoApi,
-        _currentLocationService = currentLocationService;
+  }) : _geoApi = geoApi,
+       _currentLocationService = currentLocationService;
 
   final PassengerGeoApi _geoApi;
   final CurrentLocationService _currentLocationService;
@@ -40,14 +40,12 @@ class GeoRepository {
   }
 
   Future<RouteEstimate> loadRouteEstimate({
-    required String cityId,
-    required String tariffId,
+    required String carClassId,
     required GeoPoint pickup,
     required GeoPoint destination,
   }) {
     return _geoApi.loadRouteEstimate(
-      cityId: cityId,
-      tariffId: tariffId,
+      carClassId: carClassId,
       pickup: pickup,
       destination: destination,
     );

@@ -18,29 +18,17 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (_, __) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/auth/phone',
-        builder: (_, __) => const AuthPhoneScreen(),
-      ),
+      GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/auth/phone', builder: (_, __) => const AuthPhoneScreen()),
       GoRoute(
         path: '/auth/code',
-        builder: (_, state) => AuthCodeScreen(
-          phone: state.extra! as String,
-        ),
+        builder: (_, state) => AuthCodeScreen(phone: state.extra! as String),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (_, __) => const PassengerHomeScreen(),
-      ),
+      GoRoute(path: '/home', builder: (_, __) => const PassengerHomeScreen()),
       GoRoute(
         path: '/address-search',
-        builder: (_, state) => AddressSearchScreen(
-          mode: state.extra! as AddressSearchMode,
-        ),
+        builder: (_, state) =>
+            AddressSearchScreen(mode: state.extra! as AddressSearchMode),
       ),
       GoRoute(
         path: '/order/searching',
@@ -56,18 +44,14 @@ class AppRouter {
       ),
       GoRoute(
         path: '/order/completed',
-        builder: (_, state) => OrderCompletedScreen(
-          order: state.extra! as Order,
-        ),
+        builder: (_, state) =>
+            OrderCompletedScreen(order: state.extra! as Order),
       ),
       GoRoute(
         path: '/orders/history',
         builder: (_, __) => const OrdersHistoryScreen(),
       ),
-      GoRoute(
-        path: '/profile',
-        builder: (_, __) => const ProfileScreen(),
-      ),
+      GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
     ],
   );
 }

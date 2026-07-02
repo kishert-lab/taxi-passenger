@@ -9,8 +9,8 @@ part 'passenger_profile_state.dart';
 class PassengerProfileBloc
     extends Bloc<PassengerProfileEvent, PassengerProfileState> {
   PassengerProfileBloc({required ProfileRepository profileRepository})
-      : _profileRepository = profileRepository,
-        super(const PassengerProfileState()) {
+    : _profileRepository = profileRepository,
+      super(const PassengerProfileState()) {
     on<PassengerProfileLoadRequested>(_onLoadRequested);
     on<PassengerProfileUpdateRequested>(_onUpdateRequested);
   }
@@ -40,12 +40,7 @@ class PassengerProfileBloc
         name: event.name,
         email: event.email,
       );
-      emit(
-        state.copyWith(
-          isSaving: false,
-          passenger: passenger,
-        ),
-      );
+      emit(state.copyWith(isSaving: false, passenger: passenger));
     } catch (_) {
       emit(state.copyWith(isSaving: false, errorMessage: 'Ошибка соединения'));
     }

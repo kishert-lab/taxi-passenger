@@ -22,6 +22,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
   void initState() {
     super.initState();
     context.read<MapBloc>().add(const MapCurrentLocationRequested());
+    context.read<MapBloc>().add(const MapCarClassesRequested());
   }
 
   Future<void> _selectAddress(AddressSearchMode mode) async {
@@ -38,7 +39,6 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
     }
 
     mapBloc.add(const MapRouteEstimateRequested());
-    mapBloc.add(const MapNearbyCarsRequested());
   }
 
   void _createOrder(MapState mapState) {
@@ -46,9 +46,11 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
     final destination = mapState.destinationPoint;
     if (pickup == null ||
         destination == null ||
-        mapState.selectedTariffId.isEmpty) {
+        mapState.selectedCarClassId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Укажите адреса маршрута и tariff_id')),
+        const SnackBar(
+          content: Text('Укажите адреса маршрута и класс автомобиля'),
+        ),
       );
       return;
     }
@@ -57,7 +59,7 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
       OrderCreateRequested(
         pickup: pickup,
         destination: destination,
-        tariffId: mapState.selectedTariffId,
+        carClassId: mapState.selectedCarClassId,
       ),
     );
   }
@@ -109,92 +111,124 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
         body: SafeArea(
           child: BlocBuilder<MapBloc, MapState>(
             builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: MapPlaceholder(
-                        currentLocation: state.currentLocation,
-                        pickupPoint: state.pickupPoint,
-                        destinationPoint: state.destinationPoint,
-                        nearbyCars: state.nearbyCars,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _AddressTile(
-                              title: 'Откуда',
-                              value:
-                                  state.pickupPoint?.address ??
-                                  'Выберите точку посадки',
-                              onTap: () =>
-                                  _selectAddress(AddressSearchMode.pickup),
-                            ),
-                            const SizedBox(height: 12),
-                            _AddressTile(
-                              title: 'Куда',
-                              value:
-                                  state.destinationPoint?.address ??
-                                  'Выберите точку назначения',
-                              onTap: () =>
-                                  _selectAddress(AddressSearchMode.destination),
-                            ),
-                            const SizedBox(height: 16),
-                            if (state.isLoadingEstimate)
-                              const FullScreenLoader(
-                                message: 'Считаем маршрут...',
-                              )
-                            else ...[
-                              if (state.routeEstimate != null)
-                                Text(
-                                  'Подача ~${state.routeEstimate!.etaMinutes} мин, стоимость ~${state.routeEstimate!.price.toStringAsFixed(0)} ₽',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                              const SizedBox(height: 16),
-                              TariffSelectWidget(
-                                tariffs:
-                                    state.routeEstimate?.tariffs ?? const [],
-                                selectedTariffId: state.selectedTariffId,
-                                onSelected: (tariffId) {
-                                  context.read<MapBloc>().add(
-                                    MapTariffSelected(tariffId),
-                                  );
-                                },
-                              ),
-                            ],
-                            if (state.errorMessage != null) ...[
-                              const SizedBox(height: 12),
-                              ErrorText(state.errorMessage!),
-                            ],
-                            const SizedBox(height: 16),
-                            BlocBuilder<OrderBloc, OrderState>(
-                              builder: (context, orderState) {
-                                return ElevatedButton(
-                                  onPressed: orderState.isLoading
-                                      ? null
-                                      : () => _createOrder(state),
-                                  child: orderState.isLoading
-                                      ? const CircularProgressIndicator(
-                                          color: AppColors.midnight,
-                                        )
-                                      : const Text('Заказать'),
-                                );
-                              },
-                            ),
-                          ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final mapHeight = constraints.maxHeight >= 760
+                      ? 280.0
+                      : (constraints.maxHeight * 0.26).clamp(180.0, 280.0);
+
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: mapHeight,
+                          child: MapPlaceholder(
+                            currentLocation: state.currentLocation,
+                            pickupPoint: state.pickupPoint,
+                            destinationPoint: state.destinationPoint,
+                            nearbyCars: state.nearbyCars,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(18),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _AddressTile(
+                                      title: 'Откуда',
+                                      value:
+                                          state.pickupPoint?.address ??
+                                          'Выберите точку посадки',
+                                      onTap: () => _selectAddress(
+                                        AddressSearchMode.pickup,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _AddressTile(
+                                      title: 'Куда',
+                                      value:
+                                          state.destinationPoint?.address ??
+                                          'Выберите точку назначения',
+                                      onTap: () => _selectAddress(
+                                        AddressSearchMode.destination,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Класс автомобиля',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    if (state.isLoadingCarClasses)
+                                      const Center(
+                                        child: CircularProgressIndicator(),
+                                      )
+                                    else if (state.carClasses.isEmpty)
+                                      Text(
+                                        'Классы автомобилей пока не загружены',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      )
+                                    else
+                                      CarClassSelectWidget(
+                                        carClasses: state.carClasses,
+                                        selectedCarClassId:
+                                            state.selectedCarClassId,
+                                        onSelected: (carClassId) {
+                                          context.read<MapBloc>().add(
+                                            MapCarClassSelected(carClassId),
+                                          );
+                                        },
+                                      ),
+                                    const SizedBox(height: 16),
+                                    if (state.isLoadingEstimate)
+                                      const FullScreenLoader(
+                                        message: 'Считаем маршрут...',
+                                      )
+                                    else if (state.routeEstimate != null)
+                                      Text(
+                                        'Подача ~${state.routeEstimate!.etaMinutes} мин, стоимость ~${state.routeEstimate!.price.toStringAsFixed(0)} ₽',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                    if (state.errorMessage != null) ...[
+                                      const SizedBox(height: 12),
+                                      ErrorText(state.errorMessage!),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    BlocBuilder<OrderBloc, OrderState>(
+                                      builder: (context, orderState) {
+                                        return ElevatedButton(
+                                          onPressed: orderState.isLoading
+                                              ? null
+                                              : () => _createOrder(state),
+                                          child: orderState.isLoading
+                                              ? const CircularProgressIndicator(
+                                                  color: AppColors.midnight,
+                                                )
+                                              : const Text('Заказать'),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           ),
@@ -239,7 +273,7 @@ class _AddressTile extends StatelessWidget {
                 children: [
                   Text(title, style: Theme.of(context).textTheme.labelMedium),
                   const SizedBox(height: 4),
-                  Text(value, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(value, maxLines: 3, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),

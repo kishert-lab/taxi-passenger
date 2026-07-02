@@ -93,7 +93,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
               future: _legalFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return const FullScreenLoader(message: 'Загружаем документы...');
+                  return const FullScreenLoader(
+                    message: 'Загружаем документы...',
+                  );
                 }
 
                 if (snapshot.hasError || !snapshot.hasData) {
@@ -137,7 +139,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         onChanged: (value) {
                           setState(() => _consentAccepted = value ?? false);
                         },
-                        title: const Text('Согласие на обработку персональных данных'),
+                        title: const Text(
+                          'Согласие на обработку персональных данных',
+                        ),
                         subtitle: InkWell(
                           onTap: () => _showDocument(legal.consent),
                           child: Text(
@@ -155,7 +159,9 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                         onChanged: (value) {
                           setState(() => _termsAccepted = value ?? false);
                         },
-                        title: const Text('Принимаю пользовательское соглашение'),
+                        title: const Text(
+                          'Принимаю пользовательское соглашение',
+                        ),
                         subtitle: InkWell(
                           onTap: () => _showDocument(legal.terms),
                           child: Text(
@@ -179,20 +185,24 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                      if (state.errorMessage != null) ErrorText(state.errorMessage!),
+                      if (state.errorMessage != null)
+                        ErrorText(state.errorMessage!),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: state.status == AuthStatus.loading || !_canSubmit
+                        onPressed:
+                            state.status == AuthStatus.loading || !_canSubmit
                             ? null
                             : () {
                                 context.read<AuthBloc>().add(
-                                      AuthRequestCodeSubmitted(
-                                        _controller.text.trim(),
-                                      ),
-                                    );
+                                  AuthRequestCodeSubmitted(
+                                    _controller.text.trim(),
+                                  ),
+                                );
                               },
                         child: state.status == AuthStatus.loading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : const Text('Получить код'),
                       ),
                       const Spacer(),
@@ -209,10 +219,7 @@ class _AuthPhoneScreenState extends State<AuthPhoneScreen> {
 }
 
 class _AuthLegalBundle {
-  const _AuthLegalBundle({
-    required this.consent,
-    required this.terms,
-  });
+  const _AuthLegalBundle({required this.consent, required this.terms});
 
   final LegalDocument consent;
   final LegalDocument terms;

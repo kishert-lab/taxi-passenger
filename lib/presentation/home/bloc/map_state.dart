@@ -6,10 +6,12 @@ class MapState extends Equatable {
     this.pickupPoint,
     this.destinationPoint,
     this.nearbyCars = const [],
+    this.carClasses = const [],
     this.routeEstimate,
-    this.selectedTariffId = '',
+    this.selectedCarClassId = '',
     this.isLoadingLocation = false,
     this.isLoadingCars = false,
+    this.isLoadingCarClasses = false,
     this.isLoadingEstimate = false,
     this.errorMessage,
   });
@@ -18,10 +20,12 @@ class MapState extends Equatable {
   final GeoPoint? pickupPoint;
   final GeoPoint? destinationPoint;
   final List<NearbyCar> nearbyCars;
+  final List<CarClass> carClasses;
   final RouteEstimate? routeEstimate;
-  final String selectedTariffId;
+  final String selectedCarClassId;
   final bool isLoadingLocation;
   final bool isLoadingCars;
+  final bool isLoadingCarClasses;
   final bool isLoadingEstimate;
   final String? errorMessage;
 
@@ -30,11 +34,13 @@ class MapState extends Equatable {
     GeoPoint? pickupPoint,
     GeoPoint? destinationPoint,
     List<NearbyCar>? nearbyCars,
+    List<CarClass>? carClasses,
     RouteEstimate? routeEstimate,
     bool clearRouteEstimate = false,
-    String? selectedTariffId,
+    String? selectedCarClassId,
     bool? isLoadingLocation,
     bool? isLoadingCars,
+    bool? isLoadingCarClasses,
     bool? isLoadingEstimate,
     String? errorMessage,
   }) {
@@ -43,12 +49,14 @@ class MapState extends Equatable {
       pickupPoint: pickupPoint ?? this.pickupPoint,
       destinationPoint: destinationPoint ?? this.destinationPoint,
       nearbyCars: nearbyCars ?? this.nearbyCars,
+      carClasses: carClasses ?? this.carClasses,
       routeEstimate: clearRouteEstimate
           ? null
           : routeEstimate ?? this.routeEstimate,
-      selectedTariffId: selectedTariffId ?? this.selectedTariffId,
+      selectedCarClassId: selectedCarClassId ?? this.selectedCarClassId,
       isLoadingLocation: isLoadingLocation ?? this.isLoadingLocation,
       isLoadingCars: isLoadingCars ?? this.isLoadingCars,
+      isLoadingCarClasses: isLoadingCarClasses ?? this.isLoadingCarClasses,
       isLoadingEstimate: isLoadingEstimate ?? this.isLoadingEstimate,
       errorMessage: errorMessage,
     );
@@ -60,10 +68,12 @@ class MapState extends Equatable {
     pickupPoint,
     destinationPoint,
     nearbyCars,
+    carClasses,
     routeEstimate,
-    selectedTariffId,
+    selectedCarClassId,
     isLoadingLocation,
     isLoadingCars,
+    isLoadingCarClasses,
     isLoadingEstimate,
     errorMessage,
   ];

@@ -48,9 +48,16 @@ class PassengerOrdersApi {
     }
   }
 
+  Future<Order> loadOrderDetails(String orderId) async {
+    final response = await _apiClient.get(ApiEndpoints.orderDetails(orderId));
+    return PassengerOrderResponse.fromJson(
+      response as Map<String, dynamic>? ?? <String, dynamic>{},
+    );
+  }
+
   Future<Order> cancelOrder(String orderId, {required String reason}) async {
     final response = await _apiClient.post(
-      '${ApiEndpoints.orders}/$orderId/cancel',
+      ApiEndpoints.cancelOrder(orderId),
       data: {'reason': reason},
     );
 
@@ -59,10 +66,22 @@ class PassengerOrdersApi {
     );
   }
 
+  Future<void> rateOrder({
+    required String orderId,
+    required int rating,
+    String? comment,
+  }) async {
+    await _apiClient.post(
+      ApiEndpoints.rateOrder(orderId),
+      data: {
+        'score': rating,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      },
+    );
+  }
+
   Future<List<Order>> loadOrders() async {
     final response = await _apiClient.get(ApiEndpoints.orderHistory);
-    return OrderHistoryResponse.fromJson(
-      response as Map<String, dynamic>? ?? <String, dynamic>{},
-    ).orders;
+    return OrderHistoryResponse.fromJson(response).orders;
   }
 }

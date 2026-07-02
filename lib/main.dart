@@ -7,6 +7,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final dependencies = AppDependencies.create();
+  dependencies.backendAvailabilityService.startMonitoring();
   if (FirebaseConfig.pushEnabled) {
     await dependencies.pushNotificationService.initialize();
   }

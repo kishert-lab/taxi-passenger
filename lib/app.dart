@@ -8,6 +8,7 @@ import 'package:taxi_passenger/core/config/firebase_config.dart';
 import 'package:taxi_passenger/core/routing/app_router.dart';
 import 'package:taxi_passenger/core/theme/app_theme.dart';
 import 'package:taxi_passenger/presentation/auth/bloc/auth_bloc.dart';
+import 'package:taxi_passenger/presentation/app/widgets/service_unavailable_screen.dart';
 import 'package:taxi_passenger/presentation/home/bloc/map_bloc.dart';
 import 'package:taxi_passenger/presentation/order/bloc/order_bloc.dart';
 import 'package:taxi_passenger/presentation/order/bloc/order_realtime_bloc.dart';
@@ -26,6 +27,7 @@ class _PassengerAppState extends State<PassengerApp> {
   @override
   void dispose() {
     widget.dependencies.authSessionNotifier.dispose();
+    widget.dependencies.backendAvailabilityService.dispose();
     widget.dependencies.pushNotificationService.dispose();
     widget.dependencies.webSocketService.dispose();
     super.dispose();
@@ -39,6 +41,7 @@ class _PassengerAppState extends State<PassengerApp> {
         RepositoryProvider<AuthSessionNotifier>.value(
           value: widget.dependencies.authSessionNotifier,
         ),
+        RepositoryProvider.value(value: widget.dependencies.carClassRepository),
         RepositoryProvider.value(value: widget.dependencies.geoRepository),
         RepositoryProvider.value(value: widget.dependencies.legalRepository),
         RepositoryProvider.value(value: widget.dependencies.orderRepository),
@@ -48,9 +51,9 @@ class _PassengerAppState extends State<PassengerApp> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (_) => AuthBloc(
-              authRepository: widget.dependencies.authRepository,
-            )..add(const AuthBootstrapRequested()),
+            create: (_) =>
+                AuthBloc(authRepository: widget.dependencies.authRepository)
+                  ..add(const AuthBootstrapRequested()),
           ),
           BlocProvider(
             create: (_) => PassengerProfileBloc(
@@ -59,13 +62,13 @@ class _PassengerAppState extends State<PassengerApp> {
           ),
           BlocProvider(
             create: (_) => MapBloc(
+              carClassRepository: widget.dependencies.carClassRepository,
               geoRepository: widget.dependencies.geoRepository,
             ),
           ),
           BlocProvider(
-            create: (_) => OrderBloc(
-              orderRepository: widget.dependencies.orderRepository,
-            ),
+            create: (_) =>
+                OrderBloc(orderRepository: widget.dependencies.orderRepository),
           ),
           BlocProvider(
             create: (_) => OrderRealtimeBloc(
@@ -76,19 +79,25 @@ class _PassengerAppState extends State<PassengerApp> {
         ],
         child: _AuthSessionWatcher(
           child: BlocListener<AuthBloc, AuthState>(
-            listenWhen: (previous, current) => previous.status != current.status,
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
             listener: (context, state) async {
               if (state.status == AuthStatus.authenticated) {
-                // Orders/current currently depends on backend passenger-order auth wiring.
-                // Do not block successful login on that endpoint.
+                context.read<PassengerProfileBloc>().add(
+                  const PassengerProfileLoadRequested(),
+                );
+                context.read<OrderRealtimeBloc>().add(
+                  const OrderRealtimeConnectRequested(),
+                );
+                context.read<OrderBloc>().add(const OrderCurrentRequested());
                 if (FirebaseConfig.pushEnabled) {
                   await widget.dependencies.pushNotificationService.syncToken();
                 }
                 AppRouter.router.go('/home');
               } else if (state.status == AuthStatus.unauthenticated) {
-                context
-                    .read<OrderRealtimeBloc>()
-                    .add(const OrderRealtimeDisconnectRequested());
+                context.read<OrderRealtimeBloc>().add(
+                  const OrderRealtimeDisconnectRequested(),
+                );
                 context.read<OrderBloc>().add(const OrderActiveUpdated(null));
                 AppRouter.router.go('/auth/phone');
               }
@@ -97,6 +106,29 @@ class _PassengerAppState extends State<PassengerApp> {
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light(),
               routerConfig: AppRouter.router,
+              builder: (context, child) {
+                return AnimatedBuilder(
+                  animation: widget.dependencies.backendAvailabilityService,
+                  builder: (context, _) {
+                    return Stack(
+                      children: [
+                        if (child != null) child,
+                        if (widget
+                            .dependencies
+                            .backendAvailabilityService
+                            .isUnavailable)
+                          Positioned.fill(
+                            child: ServiceUnavailableScreen(
+                              service: widget
+                                  .dependencies
+                                  .backendAvailabilityService,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
           ),
         ),
@@ -124,11 +156,11 @@ class _AuthSessionWatcherState extends State<_AuthSessionWatcher> {
         .read<AuthSessionNotifier>()
         .sessionExpiredStream
         .listen((_) {
-      if (!mounted) {
-        return;
-      }
-      context.read<AuthBloc>().add(const AuthSessionExpired());
-    });
+          if (!mounted) {
+            return;
+          }
+          context.read<AuthBloc>().add(const AuthSessionExpired());
+        });
   }
 
   @override

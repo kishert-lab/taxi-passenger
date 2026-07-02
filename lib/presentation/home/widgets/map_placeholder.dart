@@ -31,11 +31,7 @@ class MapPlaceholder extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _MapPatternPainter(),
-            ),
-          ),
+          Positioned.fill(child: CustomPaint(painter: _MapPatternPainter())),
           Positioned(
             top: 20,
             left: 20,
@@ -57,20 +53,13 @@ class MapPlaceholder extends StatelessWidget {
             Positioned(
               top: 100 + nearbyCars.indexOf(car) * 44,
               right: 28 + nearbyCars.indexOf(car) * 18,
-              child: const Icon(
-                Icons.local_taxi,
-                color: AppColors.taxiGold,
-              ),
+              child: const Icon(Icons.local_taxi, color: AppColors.taxiGold),
             ),
           if (driverLocation != null)
             const Positioned(
               bottom: 40,
               left: 40,
-              child: Icon(
-                Icons.directions_car,
-                color: Colors.white,
-                size: 30,
-              ),
+              child: Icon(Icons.directions_car, color: Colors.white, size: 30),
             ),
         ],
       ),
@@ -79,10 +68,7 @@ class MapPlaceholder extends StatelessWidget {
 }
 
 class _MapPin extends StatelessWidget {
-  const _MapPin({
-    required this.label,
-    this.color = AppColors.taxiGoldDeep,
-  });
+  const _MapPin({required this.label, this.color = AppColors.taxiGoldDeep});
 
   final String label;
   final Color color;
@@ -99,10 +85,7 @@ class _MapPin extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.w700,
-        ),
+        style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:taxi_passenger/domain/models/models.dart';
 
 class TokenStorage {
   TokenStorage([FlutterSecureStorage? secureStorage])
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   static const _accessTokenKey = 'passenger_access_token';
   static const _refreshTokenKey = 'passenger_refresh_token';

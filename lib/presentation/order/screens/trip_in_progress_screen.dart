@@ -40,8 +40,10 @@ class TripInProgressScreen extends StatelessWidget {
                         pickupPoint: order.pickup,
                         destinationPoint: order.destination,
                         nearbyCars: const [],
-                        driverLocation:
-                            context.watch<OrderRealtimeBloc>().state.driverLocation,
+                        driverLocation: context
+                            .watch<OrderRealtimeBloc>()
+                            .state
+                            .driverLocation,
                       ),
                     ),
                     const SizedBox(height: 16),

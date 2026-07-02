@@ -26,8 +26,11 @@ class PassengerGeoApi {
       },
     );
 
-    return ((response as Map<String, dynamic>?)?['results'] as List<dynamic>? ??
-            [])
+    final results =
+        (response as Map<String, dynamic>?)?['results'] as List<dynamic>? ??
+        const [];
+
+    return results
         .whereType<Map<String, dynamic>>()
         .map(GeoPoint.fromAddressSearchJson)
         .toList();
@@ -37,47 +40,24 @@ class PassengerGeoApi {
     required GeoPoint pickup,
     required GeoPoint destination,
   }) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.nearbyCars,
-      data: {
-        'pickup_location': pickup.toLocationJson(),
-        'destination_location': destination.toLocationJson(),
-      },
-    );
-
-    if (response == null) {
-      return const [];
-    }
-
-    final cars = _extractNearbyCarsResponse(response);
-    return cars
-        .whereType<Map<String, dynamic>>()
-        .map(NearbyCar.fromJson)
-        .toList();
+    return const [];
   }
 
   Future<RouteEstimate> loadRouteEstimate({
-    required String cityId,
-    required String tariffId,
+    required String carClassId,
     required GeoPoint pickup,
     required GeoPoint destination,
   }) async {
-    if (cityId.isEmpty) {
-      throw AppException('Backend requires city_id for route estimate');
-    }
-    if (tariffId.isEmpty) {
-      throw AppException(
-        'PASSENGER_DEFAULT_TARIFF_ID is not configured and backend requires tariff_id',
-      );
+    if (carClassId.isEmpty) {
+      throw AppException('Select a car class before requesting estimate');
     }
 
     final response = await _apiClient.post(
       ApiEndpoints.routeEstimate,
       data: OrderEstimateRequest(
-        cityId: cityId,
-        tariffId: tariffId,
         pickupLocation: pickup,
         destinationLocation: destination,
+        carClassId: carClassId,
       ).toJson(),
     );
 
@@ -86,30 +66,5 @@ class PassengerGeoApi {
     }
 
     return RouteEstimate.fromJson(response);
-  }
-
-  List<dynamic> _extractNearbyCarsResponse(dynamic response) {
-    if (response is List<dynamic>) {
-      return response;
-    }
-
-    if (response is! Map<String, dynamic>) {
-      throw AppException('Unexpected nearby cars response format');
-    }
-
-    final candidates = <dynamic>[
-      response['cars'],
-      response['items'],
-      response['results'],
-      response['nearby_cars'],
-    ];
-
-    for (final candidate in candidates) {
-      if (candidate is List<dynamic>) {
-        return candidate;
-      }
-    }
-
-    return const [];
   }
 }

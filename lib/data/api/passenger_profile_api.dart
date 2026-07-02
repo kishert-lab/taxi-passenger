@@ -9,8 +9,9 @@ class PassengerProfileApi {
 
   Future<Passenger> loadProfile() async {
     final response = await _apiClient.get(ApiEndpoints.me);
+    final payload = response as Map<String, dynamic>? ?? <String, dynamic>{};
     return Passenger.fromJson(
-      response as Map<String, dynamic>? ?? <String, dynamic>{},
+      payload['passenger'] as Map<String, dynamic>? ?? payload,
     );
   }
 
@@ -28,8 +29,9 @@ class PassengerProfileApi {
       },
     );
 
+    final payload = response as Map<String, dynamic>? ?? <String, dynamic>{};
     return Passenger.fromJson(
-      response as Map<String, dynamic>? ?? <String, dynamic>{},
+      payload['passenger'] as Map<String, dynamic>? ?? payload,
     );
   }
 }

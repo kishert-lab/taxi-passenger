@@ -16,21 +16,29 @@ class AuthTokens {
   DateTime get expiresAt => DateTime.now().add(Duration(seconds: expiresIn));
 
   factory AuthTokens.fromResponse(Map<String, dynamic> response) {
-    final data = response['data'] is Map<String, dynamic>
+    final rawData = response['data'] is Map<String, dynamic>
         ? response['data'] as Map<String, dynamic>
         : response;
+    final data = rawData['tokens'] is Map<String, dynamic>
+        ? rawData['tokens'] as Map<String, dynamic>
+        : rawData;
 
     return AuthTokens(
-      accessToken: data['access_token']?.toString() ??
+      accessToken:
+          data['access_token']?.toString() ??
           data['accessToken']?.toString() ??
           '',
-      refreshToken: data['refresh_token']?.toString() ??
+      refreshToken:
+          data['refresh_token']?.toString() ??
           data['refreshToken']?.toString() ??
           '',
-      tokenType: data['token_type']?.toString() ??
+      tokenType:
+          data['token_type']?.toString() ??
           data['tokenType']?.toString() ??
           'Bearer',
-      expiresIn: (data['expires_in'] as num?)?.toInt() ??
+      expiresIn:
+          (data['expires_in_seconds'] as num?)?.toInt() ??
+          (data['expires_in'] as num?)?.toInt() ??
           (data['expiresIn'] as num?)?.toInt() ??
           900,
     );
@@ -38,10 +46,7 @@ class AuthTokens {
 }
 
 class PassengerAuthSession {
-  const PassengerAuthSession({
-    required this.tokens,
-    required this.passenger,
-  });
+  const PassengerAuthSession({required this.tokens, required this.passenger});
 
   final AuthTokens tokens;
   final Passenger passenger;
