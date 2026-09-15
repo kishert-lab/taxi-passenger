@@ -107,7 +107,8 @@ void main() {
 
     test('estimate request serializes backend payload', () {
       const request = OrderEstimateRequest(
-        carClassId: 'class-1',
+        cityId: 'city-1',
+        carClass: 'economy',
         pickupLocation: GeoPoint(
           lat: 56.8389,
           lng: 60.6057,
@@ -123,22 +124,16 @@ void main() {
       );
 
       expect(request.toJson(), {
-        'pickup': {
-          'address': 'Lenina 1',
-          'latitude': 56.8389,
-          'longitude': 60.6057,
-        },
-        'dropoff': {
-          'address': 'Mira 10',
-          'latitude': 56.8489,
-          'longitude': 60.6157,
-        },
-        'car_class_id': 'class-1',
+        'city_id': 'city-1',
+        'pickup_location': {'latitude': 56.8389, 'longitude': 60.6057},
+        'destination_location': {'latitude': 56.8489, 'longitude': 60.6157},
+        'car_class': 'economy',
       });
     });
 
     test('create order request serializes backend payload', () {
       const request = CreateOrderRequest(
+        cityId: 'city-1',
         pickupLocation: GeoPoint(
           lat: 56.8389,
           lng: 60.6057,
@@ -155,25 +150,20 @@ void main() {
           cityId: 'city-1',
         ),
         destinationAddress: 'Mira 10',
-        carClassId: 'class-1',
+        carClass: 'economy',
         paymentType: 'cash',
         comment: 'Luggage',
         passengerLocationSharingEnabled: true,
       );
 
       expect(request.toJson(), {
-        'pickup': {
-          'address': 'Lenina 1',
-          'latitude': 56.8389,
-          'longitude': 60.6057,
-        },
-        'dropoff': {
-          'address': 'Mira 10',
-          'latitude': 56.8489,
-          'longitude': 60.6157,
-        },
-        'car_class_id': 'class-1',
-        'payment_method': 'cash',
+        'city_id': 'city-1',
+        'pickup_address': 'Lenina 1',
+        'pickup_location': {'latitude': 56.8389, 'longitude': 60.6057},
+        'destination_address': 'Mira 10',
+        'destination_location': {'latitude': 56.8489, 'longitude': 60.6157},
+        'car_class': 'economy',
+        'payment_type': 'cash',
         'comment': 'Luggage',
       });
     });
@@ -182,16 +172,22 @@ void main() {
       final estimate = RouteEstimate.fromJson({
         'distance_meters': 4200,
         'duration_seconds': 660,
-        'estimated_price': '250.00',
+        'price': 25000,
+        'estimated_price': {'amount': 25000, 'currency': 'RUB'},
+        'estimated_price_min': {'amount': 22000, 'currency': 'RUB'},
+        'estimated_price_max': {'amount': 28000, 'currency': 'RUB'},
         'currency': 'RUB',
-        'car_class_id': 'class-1',
-        'car_class': {'id': 'class-1', 'name': 'Economy'},
+        'tariff_id': 'tariff-1',
+        'tariff_name': 'Economy',
+        'car_class': 'economy',
+        'available': true,
       });
 
-      expect(estimate.carClassId, 'class-1');
+      expect(estimate.carClassId, 'tariff-1');
       expect(estimate.etaMinutes, 11);
-      expect(estimate.price, 250);
+      expect(estimate.price, 25000);
       expect(estimate.carClassName, 'Economy');
+      expect(estimate.priceLabel, '220-280 ₽');
     });
 
     test('current order and history parse passenger order dto', () {

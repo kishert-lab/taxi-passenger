@@ -14,9 +14,10 @@ class OrderRepository {
   }) {
     return _ordersApi.estimateOrder(
       OrderEstimateRequest(
+        cityId: pickup.cityId ?? destination.cityId ?? '',
         pickupLocation: pickup,
         destinationLocation: destination,
-        carClassId: carClassId,
+        carClass: carClassId,
       ),
     );
   }
@@ -33,13 +34,14 @@ class OrderRepository {
   }) async {
     return _ordersApi.createOrder(
       CreateOrderRequest(
+        cityId: pickup.cityId ?? destination.cityId ?? '',
         pickupLocation: pickup,
         pickupAddress: pickup.address,
         pickupEntrance: pickupEntrance,
         pickupComment: pickupComment,
         destinationLocation: destination,
         destinationAddress: destination.address,
-        carClassId: carClassId,
+        carClass: carClassId,
         paymentType: paymentType,
         comment: comment,
         passengerLocationSharingEnabled: passengerLocationSharingEnabled,

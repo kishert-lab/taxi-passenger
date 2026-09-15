@@ -309,11 +309,11 @@ class ApiClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'РўР°Р№РјР°СѓС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ';
+        return 'Таймаут соединения';
       case DioExceptionType.connectionError:
-        return 'РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ СЃРµСЂРІРµСЂРѕРј';
+        return 'Нет соединения с сервером';
       default:
-        return 'РћС€РёР±РєР° СЃРѕРµРґРёРЅРµРЅРёСЏ';
+        return 'Ошибка соединения';
     }
   }
 

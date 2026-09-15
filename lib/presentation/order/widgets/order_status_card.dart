@@ -17,7 +17,7 @@ class OrderStatusCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              orderStatusLabel(order.status),
+              passengerOrderStatusLabel(order.status),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -26,7 +26,11 @@ class OrderStatusCard extends StatelessWidget {
             Text(
               'Создан ${DateFormat('dd.MM.yyyy HH:mm').format(order.createdAt)}',
             ),
-            Text('Стоимость: ${order.priceValue.toStringAsFixed(0)} ₽'),
+            Text('Стоимость: ${order.priceLabel}'),
+            if (order.assignedTaxiParkId.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Водитель назначен'),
+            ],
             if (extraText != null) ...[
               const SizedBox(height: 8),
               Text(extraText!),

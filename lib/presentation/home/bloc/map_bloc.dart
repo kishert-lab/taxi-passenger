@@ -124,7 +124,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     );
     try {
       final estimate = await _geoRepository.loadRouteEstimate(
-        carClassId: state.selectedCarClassId,
+        carClassId: _selectedCarClassCode(),
         pickup: state.pickupPoint!,
         destination: state.destinationPoint!,
       );
@@ -132,9 +132,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         state.copyWith(
           isLoadingEstimate: false,
           routeEstimate: estimate,
-          selectedCarClassId: estimate.carClassId.isNotEmpty
-              ? estimate.carClassId
-              : state.selectedCarClassId,
+          selectedCarClassId: state.selectedCarClassId,
         ),
       );
     } catch (error) {
@@ -168,5 +166,17 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     if (previousPickupPoint != null && previousDestinationPoint != null) {
       add(const MapRouteEstimateRequested());
     }
+  }
+
+  String _selectedCarClassCode() {
+    final selected = state.carClasses.where(
+      (carClass) => carClass.id == state.selectedCarClassId,
+    );
+    if (selected.isEmpty) {
+      return state.selectedCarClassId;
+    }
+
+    final carClass = selected.first;
+    return carClass.code.isNotEmpty ? carClass.code : carClass.id;
   }
 }

@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
-
 class AppMockConfig {
   const AppMockConfig._();
 
-  static const bool enabled =
-      kDebugMode &&
-      bool.fromEnvironment('PASSENGER_USE_MOCKS', defaultValue: false);
+  static const bool enabled = bool.fromEnvironment(
+    'PASSENGER_USE_MOCKS',
+    defaultValue: false,
+  );
 }

@@ -59,9 +59,21 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
       OrderCreateRequested(
         pickup: pickup,
         destination: destination,
-        carClassId: mapState.selectedCarClassId,
+        carClassId: _selectedCarClassCode(mapState),
       ),
     );
+  }
+
+  String _selectedCarClassCode(MapState mapState) {
+    final selected = mapState.carClasses.where(
+      (carClass) => carClass.id == mapState.selectedCarClassId,
+    );
+    if (selected.isEmpty) {
+      return mapState.selectedCarClassId;
+    }
+
+    final carClass = selected.first;
+    return carClass.code.isNotEmpty ? carClass.code : carClass.id;
   }
 
   void _openOrderByStatus(Order order) {
@@ -194,11 +206,8 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
                                         message: 'Считаем маршрут...',
                                       )
                                     else if (state.routeEstimate != null)
-                                      Text(
-                                        'Подача ~${state.routeEstimate!.etaMinutes} мин, стоимость ~${state.routeEstimate!.price.toStringAsFixed(0)} ₽',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
+                                      _RouteEstimateView(
+                                        estimate: state.routeEstimate!,
                                       ),
                                     if (state.errorMessage != null) ...[
                                       const SizedBox(height: 12),
@@ -234,6 +243,51 @@ class _PassengerHomeScreenState extends State<PassengerHomeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RouteEstimateView extends StatelessWidget {
+  const _RouteEstimateView({required this.estimate});
+
+  final RouteEstimate estimate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (!estimate.available) {
+      return Text(
+        estimate.message.isNotEmpty
+            ? estimate.message
+            : 'Расчет цены сейчас недоступен',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.error,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          estimate.priceLabel,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Подача ~${estimate.etaMinutes} мин',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          estimate.message.isNotEmpty
+              ? estimate.message
+              : 'Итоговая стоимость может измениться после назначения водителя',
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }

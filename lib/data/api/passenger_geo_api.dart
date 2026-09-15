@@ -55,9 +55,10 @@ class PassengerGeoApi {
     final response = await _apiClient.post(
       ApiEndpoints.routeEstimate,
       data: OrderEstimateRequest(
+        cityId: pickup.cityId ?? destination.cityId ?? '',
         pickupLocation: pickup,
         destinationLocation: destination,
-        carClassId: carClassId,
+        carClass: carClassId,
       ).toJson(),
     );
 
