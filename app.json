@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Taxi Passenger",
+    "slug": "taxi-passenger",
+    "version": "1.0.0",
+    "scheme": "taxi-passenger",
+    "orientation": "portrait",
+    "android": { "package": "ru.it59com.taxi.passenger" },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}
