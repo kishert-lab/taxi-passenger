@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "taxi-passenger",
     "orientation": "portrait",
-    "android": { "package": "ru.it59com.taxi.passenger" },
+    "android": { "package": "ru.it59com.taxi.passenger.development" },
     "plugins": ["expo-router"],
     "experiments": { "typedRoutes": true }
   }

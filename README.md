@@ -2,7 +2,8 @@
 
 Постепенная миграция пассажирского приложения с Flutter на Expo / React Native / TypeScript.
 Текущий этап: минимальный запускаемый каркас с Expo Router и development client.
-Единственный экран содержит название приложения. Функциональность пассажира пока не перенесена.
+Единственный экран содержит `Taxi Passenger` и `Expo migration is running`.
+Функциональность пассажира пока не перенесена.
 
 ## Требования
 
@@ -22,6 +23,7 @@ Router подтягивает их как peer dependencies; автоматич�
 
 ```powershell
 npm ci
+Copy-Item .env.example .env
 # Укажите собственный путь к Android SDK, если ANDROID_HOME ещё не настроен:
 $env:ANDROID_HOME = 'C:\develop\sdk'
 adb devices
@@ -37,13 +39,24 @@ build на выбранное устройство, затем запускае�
 
 ```powershell
 adb reverse tcp:8081 tcp:8081
-npm start -- --localhost
+$env:REACT_NATIVE_PACKAGER_HOSTNAME = '127.0.0.1'
+npm start -- --lan
 ```
 
 Откройте development build на телефоне. При необходимости укажите в нём
 `http://127.0.0.1:8081`. Этот адрес относится только к Metro через USB.
 Backend находится отдельно: `http://192.168.0.50:8080`.
-Подключение API и `EXPO_PUBLIC_API_URL` относятся к следующей фазе.
+На этом Windows-хосте `--localhost` привязывал Metro только к IPv6 `::1`,
+а ADB требовал IPv4. Поэтому для USB используется `--lan` с явно заданным
+адресом `127.0.0.1` в manifest.
+В `.env` задан `EXPO_PUBLIC_API_URL=http://192.168.0.50:8080`.
+`src/shared/config/environment.ts` проверяет URL при запуске; сетевых вызовов нет.
+Переменные `EXPO_PUBLIC_*` попадают в приложение, поэтому не должны содержать секреты.
+
+Для этой фазы Android package — `ru.it59com.taxi.passenger.development`.
+Development build устанавливается рядом с прежним `ru.it59com.taxi.passenger`,
+подписанным другим ключом. Его данные сохраняются. Это идентификатор разработки;
+настройка production-сборки относится к отдельной задаче.
 
 Временно каркас также можно открыть через совместимый Expo Go:
 
@@ -69,11 +82,7 @@ Expo Doctor (21/21), Android export, запуск Metro и выдача developm
 зависимостей Expo; high/critical отсутствуют. Автоматический `audit fix --force`
 не применялся, поскольку предлагает несовместимую смену Expo SDK.
 
-Native Android debug APK также собран успешно (`BUILD SUCCESSFUL`, arm64-v8a).
-Установка на подключённый Android 9 остановилась с
-`INSTALL_FAILED_UPDATE_INCOMPATIBLE`: уже установленное приложение
-`ru.it59com.taxi.passenger` подписано другим ключом. Приложение и его данные
-не удалялись; отображение экрана на устройстве пока не подтверждено.
+Результат повторной проверки development build на Android 9 описан ниже.
 
 ## Структура
 
@@ -82,11 +91,10 @@ app/
   _layout.tsx       # корневой Stack Expo Router
   index.tsx         # минимальный стартовый экран
 src/
-  api/             # будущие API-клиент и DTO
-  entities/        # модели
-  features/        # функциональность по областям
-  services/        # mobile/platform services
-  shared/          # общие элементы
+  shared/config/environment.ts
+legacy/flutter/    # исходная Flutter implementation
+docs/MOBILE_GIS_CONTRACT.md
+.env.example
 app.json
 package.json
 package-lock.json
@@ -94,13 +102,16 @@ tsconfig.json
 swagger-doc.json   # существующий контракт backend
 ```
 
-Пустые разделы `src/` сохранены через `.gitkeep`. Конкретные feature-папки,
-TanStack Query и SecureStore добавляются при реализации соответствующих фаз.
+Feature-папки, TanStack Query и SecureStore добавляются при реализации
+соответствующих фаз. Пустые разделы заранее не создаются.
 
 ## Flutter reference и API
 
-Flutter-файлы удалены из рабочей копии пользователем перед инициализацией Expo.
-Reference доступен в Git, коммит `84cff041a88ff427fb98d8a4630a9d03c2ae985f`:
+Flutter-файлы были удалены перед инициализацией Expo. Для постепенной миграции
+исходники восстановлены без изменений в `legacy/flutter/` из коммита
+`84cff041a88ff427fb98d8a4630a9d03c2ae985f`: `lib`, тесты, платформенные проекты,
+pubspec и настройки Flutter. Корневые IDE-файлы не копировались; README и Swagger
+сохранены в корне. Flutter остаётся reference implementation:
 
 ```powershell
 git show 84cff041a88ff427fb98d8a4630a9d03c2ae985f:lib/core/constants/api_endpoints.dart
@@ -120,7 +131,7 @@ WebSocket. Актуальный контракт работающего backend:
 
 ## Следующие этапы
 
-1. Config, API, secure storage, authentication, refresh, профиль.
+1. API, secure storage, authentication, refresh, профиль.
 2. Геолокация, поиск адреса, классы авто, расчёт маршрута.
 3. Создание и состояние заказа.
 4. WebSocket, reconnect и REST-синхронизация.

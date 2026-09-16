@@ -4,6 +4,7 @@ export default function IndexScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Taxi Passenger</Text>
+      <Text>Expo migration is running</Text>
     </View>
   );
 }
