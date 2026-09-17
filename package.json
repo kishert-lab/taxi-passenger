@@ -9,7 +9,8 @@
     "android": "expo run:android --device",
     "typecheck": "tsc --noEmit",
     "check:dependencies": "expo install --check",
-    "export:android": "expo export --platform android"
+    "export:android": "expo export --platform android",
+    "generate:api": "node scripts/generate-openapi.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -19,7 +20,9 @@
     "expo-constants": "~57.0.18",
     "expo-dev-client": "~57.0.19",
     "expo-linking": "~57.0.10",
+    "expo-location": "~57.0.18",
     "expo-router": "~57.0.21",
+    "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -31,6 +34,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "openapi-typescript": "^6.7.6",
+    "swagger2openapi": "^7.0.8",
     "typescript": "~6.0.3"
   }
 }
